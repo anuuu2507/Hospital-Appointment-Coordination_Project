@@ -1,103 +1,77 @@
-# 🏥 Hospital Appointment Coordination
+# Hospital Appointment Booking Agent
 
-A digital hospital appointment coordination platform designed to make doctor appointment booking easier, faster, and more convenient for patients, doctors, hospital staff, and family members.
+A conversational AI agent for hospital appointment management. Patients find doctors, check availability, and manage appointments through natural language. Hospital staff manage doctor schedules — all through a browser-based chat interface.
 
-## 📌 Problem Statement
+## Tech Stack
 
-Booking hospital appointments can take a lot of time. Patients often need to call hospitals repeatedly to check doctor availability and find a suitable appointment slot.
+- **Backend:** Python 3.11+ / FastAPI
+- **Frontend:** HTML + Vanilla JavaScript
+- **Database:** SQLite
+- **AI:** Gemini 2.0 Flash (Google) with function calling
 
-This project aims to simplify that process by allowing users to:
+## Setup
 
-- Find available doctors
-- Check appointment slots
-- Book appointments online
-- Manage existing appointments more conveniently
+1. Get a Gemini API key from https://aistudio.google.com/app/apikey
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Set the API key:
+   ```bash
+   export GEMINI_API_KEY=your_key_here
+   ```
+4. Start the server:
+   ```bash
+   uvicorn main:app --reload
+   ```
+5. Open http://localhost:8000
 
-The goal is to reduce repeated phone calls, waiting time, and manual appointment coordination.
+## Demo Credentials
 
-## 👥 Target Users
+| Role | Email | Password |
+|------|-------|----------|
+| Patient | arun@example.com | patient123 |
+| Patient | deepa@example.com | patient123 |
+| Patient | vikram@example.com | patient123 |
+| Staff | staff@hospital.com | staff123 |
 
-The system is designed for:
+## Features
 
-- **Patients** — book appointments with doctors
-- **Doctors** — manage their availability and schedules
-- **Hospital Staff** — coordinate and manage appointments
-- **Family Members** — book and manage appointments for loved ones
+### Patient
+- Search doctors by specialty/hospital
+- Check available 30-minute slots
+- Book, reschedule, cancel appointments
+- View appointment history
 
-## 🎯 Key Pain Points Addressed
+### Staff
+- List all doctors with working hours
+- View any doctor's schedule by date
+- Update doctor working hours
 
-The platform focuses on common appointment-booking difficulties:
+## Project Structure
 
-- Difficulty finding available doctors
-- Long waiting times and repeated phone calls
-- Challenges in changing or cancelling appointments
-- Difficulty for doctors and hospital staff in managing schedules
+```
+main.py          - FastAPI app (API endpoints + static serving)
+agent.py         - Gemini 2.0 Flash integration with function calling
+tools.py         - 9 tool functions with business rule enforcement
+database.py      - SQLite schema creation and seed data
+static/index.html - Chat UI (login + chat screens)
+requirements.txt - Python dependencies
+CONTEXT.md       - Domain glossary
+docs/adr/        - Architecture Decision Records
+```
 
-## 💡 How It Works
+## Business Rules
 
-Instead of depending mainly on phone calls, direct hospital visits, or separate hospital websites, the platform provides a centralized appointment-booking experience.
+All rules enforced in the tool layer (Python), not in LLM prompts:
+- No past-slot booking
+- No double-booking (DB constraint + code check)
+- 7-day booking window
+- Valid 30-minute slot alignment
+- Doctor must work on requested day
+- Patient can only modify own appointments
+- Role-based tool access
 
-### Patient Flow
+## Author
 
-1. Search for a doctor
-2. Check available appointment slots
-3. Select a convenient slot
-4. Book the appointment
-5. Manage the appointment when required
-
-### Doctor / Hospital Flow
-
-1. Maintain doctor availability
-2. Manage schedules
-3. Coordinate booked appointments
-4. Reduce manual appointment handling
-
-## ✨ Core Features
-
-- 👨‍⚕️ Doctor availability discovery
-- 📅 Online appointment slot selection
-- 📝 Appointment booking
-- 🔄 Appointment management
-- 👩‍⚕️ Doctor schedule management
-- 🏥 Hospital appointment coordination
-- 👨‍👩‍👧 Family-member booking support
-- ⏱️ Reduced waiting and manual coordination
-
-## 🏗️ Project Status
-
-This repository currently contains the project concept and problem definition. Implementation details, architecture, technology stack, setup instructions, and deployment information can be added as development progresses.
-
-## 📂 Repository
-
-This project is maintained in the GitHub repository:
-
-**Hospital-Appointment-Coordination**
-
-## 🚀 Future Enhancements
-
-Potential extensions include:
-
-- User authentication and role-based access
-- Hospital and department selection
-- Doctor search and filtering
-- Real-time slot availability
-- Appointment rescheduling and cancellation
-- Notifications and reminders
-- Doctor dashboards
-- Hospital administration dashboards
-- Appointment history
-- Integration with digital health services
-
-## 🎓 Project Context
-
-This project focuses on improving the hospital appointment experience by saving time and effort for patients, doctors, hospital staff, and family members.
-
-## 👩‍💻 Author
-
-**Bhavana Kolli**
-
-GitHub: [@bhavana2007](https://github.com/bhavana2007)
-
----
-
-⭐ If this project is useful or interesting, feel free to explore the repository and follow its development.
+**Bhavana Kolli** — [@bhavana2007](https://github.com/bhavana2007)
