@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HealthConnect</title>
+<link rel="icon" type="image/svg+xml" href="/static/assets/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -310,13 +311,13 @@ input, select { font-family: inherit; }
           </div>
           <div class="right-col">
             <div class="action-card">
-              <div class="action-icon">🤖</div>
+              <img src="/static/assets/heali-logo.svg" alt="Heali" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Heali</h3>
               <p class="action-desc">Your AI Healthcare Companion</p>
               <button class="btn-primary" onclick="openHeali()">Talk to Heali</button>
             </div>
             <div class="action-card">
-              <div class="action-icon">📅</div>
+              <img src="/static/assets/calendar-booking.svg" alt="Book Manually" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Book Manually</h3>
               <button class="btn-outline" onclick="openManualBooking()">Book Appointment</button>
             </div>
@@ -339,13 +340,13 @@ input, select { font-family: inherit; }
           </div>
           <div class="right-col">
             <div class="action-card">
-              <div class="action-icon">🤖</div>
+              <img src="/static/assets/heali-logo.svg" alt="Heali" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Heali</h3>
               <p class="action-desc">Your AI Healthcare Companion</p>
               <button class="btn-primary" onclick="openHeali()">Talk to Heali</button>
             </div>
             <div class="action-card">
-              <div class="action-icon">🗓</div>
+              <img src="/static/assets/calendar-booking.svg" alt="Manage Schedule" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Manage Schedule</h3>
               <button class="btn-outline" onclick="openManageSchedule()">Manage Schedule</button>
             </div>
@@ -358,7 +359,7 @@ input, select { font-family: inherit; }
         <button class="btn-outline" style="width:auto; margin-bottom:1rem; padding:0.5rem 1rem;" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         <div class="chat-container">
           <div style="padding:1rem; border-bottom:1px solid var(--border); font-weight:600; display:flex; gap:0.5rem; align-items:center;">
-             <i class="fa-solid fa-robot" style="color:var(--teal)"></i> Heali
+             <img src="/static/assets/heali-logo.svg" alt="Heali" width="24" height="24"> Heali
           </div>
           <div class="chat-messages" id="messages"></div>
           <div class="chat-input-area">
@@ -730,7 +731,7 @@ function openHeali() {
   document.getElementById('chatView').classList.add('active');
   const msgs = document.getElementById('messages');
   if(msgs.innerHTML === '') {
-     msgs.innerHTML = `<div class="message agent"><div class="msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="msg-bubble">Hello! I'm Heali. How can I assist you today?</div></div>`;
+     msgs.innerHTML = `<div class="message agent"><div class="msg-avatar" style="background:transparent;"><img src="/static/assets/heali-logo.svg" alt="Heali" width="32" height="32"></div><div class="msg-bubble">Hello! I'm Heali. How can I assist you today?</div></div>`;
   }
 }
 async function sendMessage() {
@@ -746,7 +747,7 @@ async function sendMessage() {
     if(typeof reply === 'string' && reply.startsWith('{')) {
         try { let j = JSON.parse(reply); reply = j.message || reply; } catch(e){}
     }
-    document.getElementById('messages').innerHTML += `<div class="message agent"><div class="msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="msg-bubble">${reply}</div></div>`;
+    document.getElementById('messages').innerHTML += `<div class="message agent"><div class="msg-avatar" style="background:transparent;"><img src="/static/assets/heali-logo.svg" alt="Heali" width="32" height="32"></div><div class="msg-bubble">${reply}</div></div>`;
     document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
   } catch(e) {}
 }
