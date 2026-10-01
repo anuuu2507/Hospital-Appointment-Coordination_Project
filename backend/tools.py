@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from database import get_db
+from database.database import get_db
 
 BOOKING_WINDOW_DAYS = 7
 
@@ -40,7 +40,7 @@ def search_doctors(specialty: str = None, hospital_name: str = None, **_):
 
     doctors = []
     for r in rows:
-        days = [int(d) for d in r["work_days"].split(",")]
+        days = [int(d) for d in r["work_days"].split(",") if d]
         day_names = [_weekday_name(d) for d in days]
         doctors.append({
             "id": r["id"],
@@ -82,7 +82,7 @@ def check_slots(doctor_id: int, date: str, **_):
         return {"error": f"Slots are only available within {BOOKING_WINDOW_DAYS} days from today."}
 
     weekday = req_date.weekday()
-    work_days = [int(d) for d in doctor["work_days"].split(",")]
+    work_days = [int(d) for d in doctor["work_days"].split(",") if d]
     if weekday not in work_days:
         db.close()
         return {"error": f"Dr. {doctor['name']} does not work on {_weekday_name(weekday)}s."}
@@ -93,7 +93,10 @@ def check_slots(doctor_id: int, date: str, **_):
     all_slots = []
     current = work_start
     while current + timedelta(minutes=30) <= work_end:
-        all_slots.append(current.strftime("%H:%M"))
+        slot_str = current.strftime("%H:%M")
+        # Hardcode lunch break
+        if not ("11:30" <= slot_str < "13:00"):
+            all_slots.append(slot_str)
         current += timedelta(minutes=30)
 
     booked = db.execute(
@@ -148,17 +151,24 @@ def book_appointment(doctor_id: int, slot_datetime: str, caller_id: int, **_):
         return {"error": f"Booking window is {BOOKING_WINDOW_DAYS} days from today."}
 
     weekday = slot_dt.weekday()
-    work_days = [int(d) for d in doctor["work_days"].split(",")]
+    work_days = [int(d) for d in doctor["work_days"].split(",") if d]
     if weekday not in work_days:
         db.close()
         return {"error": f"Dr. {doctor['name']} does not work on {_weekday_name(weekday)}s."}
 
     work_start = datetime.strptime(doctor["work_start"], "%H:%M").time()
     work_end = datetime.strptime(doctor["work_end"], "%H:%M").time()
+    
     slot_time = slot_dt.time()
     if slot_time < work_start or slot_time >= work_end:
         db.close()
         return {"error": f"Slot is outside working hours ({doctor['work_start']}-{doctor['work_end']})."}
+
+    lunch_start = datetime.strptime("11:30", "%H:%M").time()
+    lunch_end = datetime.strptime("13:00", "%H:%M").time()
+    if lunch_start <= slot_time < lunch_end:
+        db.close()
+        return {"error": "Slot falls within the lunch break (11:30-13:00)."}
 
     if slot_time.minute % 30 != 0:
         db.close()
@@ -290,9 +300,12 @@ def reschedule_appointment(appointment_id: int, new_slot_datetime: str, caller_i
     }
 
 
-def get_doctor_schedule(doctor_id: int, date: str, caller_role: str, **_):
-    if caller_role != "staff":
-        return {"error": "Only staff can view doctor schedules."}
+def get_doctor_schedule(doctor_id: int, date: str, caller_role: str, auth_doctor_id: int = None, **_):
+    if caller_role == "doctor":
+        if str(doctor_id) != str(auth_doctor_id) and doctor_id != auth_doctor_id:
+            return {"error": "Doctors can only view their own schedules."}
+    elif caller_role != "staff":
+        return {"error": "Only staff or the doctor themselves can view doctor schedules."}
 
     db = get_db()
 
@@ -340,7 +353,7 @@ def list_all_doctors(caller_role: str, **_):
 
     doctors = []
     for r in rows:
-        days = [int(d) for d in r["work_days"].split(",")]
+        days = [int(d) for d in r["work_days"].split(",") if d]
         day_names = [_weekday_name(d) for d in days]
         doctors.append({
             "id": r["id"],
@@ -355,9 +368,12 @@ def list_all_doctors(caller_role: str, **_):
     return {"doctors": doctors}
 
 
-def update_doctor_hours(doctor_id: int, work_start: str, work_end: str, work_days: str, caller_role: str, **_):
-    if caller_role != "staff":
-        return {"error": "Only staff can update doctor hours."}
+def update_doctor_hours(doctor_id: int, work_start: str, work_end: str, work_days: str, caller_role: str, auth_doctor_id: int = None, **_):
+    if caller_role == "doctor":
+        if str(doctor_id) != str(auth_doctor_id) and doctor_id != auth_doctor_id:
+            return {"error": "Doctors can only update their own hours."}
+    elif caller_role != "staff":
+        return {"error": "Only staff or the doctor themselves can update doctor hours."}
 
     db = get_db()
 
@@ -392,6 +408,87 @@ def update_doctor_hours(doctor_id: int, work_start: str, work_end: str, work_day
     }
 
 
+import math
+
+def haversine(lat1, lon1, lat2, lon2):
+    if not lat1 or not lon1 or not lat2 or not lon2:
+        return float('inf')
+    R = 6371.0
+    try:
+        lat1_rad = math.radians(float(lat1))
+        lon1_rad = math.radians(float(lon1))
+        lat2_rad = math.radians(float(lat2))
+        lon2_rad = math.radians(float(lon2))
+    except (ValueError, TypeError):
+        return float('inf')
+
+    dlon = lon2_rad - lon1_rad
+    dlat = lat2_rad - lat1_rad
+
+    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return R * c
+
+def find_nearby_hospitals(latitude: float, longitude: float, radius_km: float = 10, **_):
+    db = get_db()
+    rows = db.execute("SELECT * FROM hospitals").fetchall()
+    db.close()
+    
+    nearby = []
+    for r in rows:
+        if r["latitude"] and r["longitude"]:
+            dist = haversine(latitude, longitude, r["latitude"], r["longitude"])
+            if dist <= radius_km:
+                nearby.append({
+                    "id": r["id"],
+                    "name": r["name"],
+                    "location": r["location"],
+                    "address": r["address"],
+                    "distance_km": round(dist, 2)
+                })
+    
+    nearby.sort(key=lambda x: x["distance_km"])
+    return {"hospitals": nearby}
+
+def find_nearby_doctors(latitude: float, longitude: float, specialty: str = None, radius_km: float = 10, **_):
+    db = get_db()
+    query = """
+        SELECT d.id, d.name, d.specialty, h.name as hospital, h.location, h.address, h.latitude, h.longitude,
+               d.work_start, d.work_end, d.work_days
+        FROM doctors d JOIN hospitals h ON d.hospital_id = h.id
+        WHERE h.latitude IS NOT NULL AND h.longitude IS NOT NULL
+    """
+    params = []
+    if specialty:
+        query += " AND LOWER(d.specialty) LIKE ?"
+        params.append(f"%{specialty.lower()}%")
+        
+    rows = db.execute(query, params).fetchall()
+    db.close()
+    
+    nearby = []
+    for r in rows:
+        dist = haversine(latitude, longitude, r["latitude"], r["longitude"])
+        if dist <= radius_km:
+            days = [int(d) for d in r["work_days"].split(",") if d] if r["work_days"] else []
+            day_names = [_weekday_name(d) for d in days] if days else []
+            nearby.append({
+                "id": r["id"],
+                "name": r["name"],
+                "specialty": r["specialty"],
+                "hospital": r["hospital"],
+                "location": r["location"],
+                "address": r["address"],
+                "distance_km": round(dist, 2),
+                "work_start": r["work_start"],
+                "work_end": r["work_end"],
+                "work_days": ", ".join(day_names) if day_names else ""
+            })
+            
+    nearby.sort(key=lambda x: x["distance_km"])
+    return {"doctors": nearby}
+
 TOOLS_MAP = {
     "search_doctors": search_doctors,
     "check_slots": check_slots,
@@ -402,4 +499,6 @@ TOOLS_MAP = {
     "get_doctor_schedule": get_doctor_schedule,
     "list_all_doctors": list_all_doctors,
     "update_doctor_hours": update_doctor_hours,
+    "find_nearby_hospitals": find_nearby_hospitals,
+    "find_nearby_doctors": find_nearby_doctors,
 }

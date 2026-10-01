@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthConnect</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #0F2747;
+  --teal: #0F9D8A;
+  --bg: #F5F8FA;
+  --card: #FFFFFF;
+  --text-primary: #172B4D;
+  --text-secondary: #64748B;
+  --border: #E2E8F0;
+  --success: #16A34A;
+  --danger: #DC2626;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+body { background: var(--bg); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+a { color: var(--teal); text-decoration: none; cursor: pointer; }
+button { cursor: pointer; border: none; font-family: inherit; transition: all 0.2s ease; }
+input, select { font-family: inherit; }
+
+.hidden { display: none !important; }
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+.text-secondary { color: var(--text-secondary); }
+
+/* AUTH VIEWS */
+.auth-wrapper { width: 100vw; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); padding: 2rem; position: fixed; top: 0; left: 0; z-index: 1000; overflow-y: auto; }
+.auth-card { background: var(--card); padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 440px; margin: auto; }
+.auth-header { text-align: center; margin-bottom: 2rem; }
+.auth-header i { font-size: 2.5rem; color: var(--teal); margin-bottom: 1rem; }
+.auth-header h1 { font-size: 1.5rem; color: var(--navy); font-weight: 700; margin-bottom: 0.25rem; }
+.auth-header p { color: var(--text-secondary); font-size: 0.95rem; }
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
+.form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.95rem; outline: none; }
+.form-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15, 157, 138, 0.1); }
+.btn-primary { width: 100%; padding: 0.75rem 1.5rem; background: var(--teal); color: white; border-radius: var(--radius-md); font-weight: 600; font-size: 1rem; }
+.btn-primary:hover { background: #0c8272; }
+.btn-outline { width: 100%; padding: 0.75rem 1.5rem; background: transparent; border: 1px solid var(--teal); color: var(--teal); border-radius: var(--radius-md); font-weight: 600; font-size: 1rem; }
+.btn-outline:hover { background: rgba(15, 157, 138, 0.05); }
+.auth-switch { text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+.alert { padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.25rem; display: none; }
+.alert.error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+.alert.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+
+/* HEADER */
+.topbar { background: var(--card); padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+.logo-area { display: flex; align-items: center; gap: 0.75rem; }
+.logo-area i { font-size: 1.5rem; color: var(--teal); }
+.logo-area h2 { font-size: 1.25rem; color: var(--navy); font-weight: 700; margin: 0; }
+.greeting-title { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 600; font-size: 1.1rem; color: var(--navy); }
+.actions-area { display: flex; align-items: center; gap: 1.25rem; }
+.icon-btn { background: transparent; color: var(--navy); font-size: 1.25rem; position: relative; }
+.icon-btn:hover { color: var(--teal); }
+.badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 0.6rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+/* DROPDOWN */
+.dropdown { position: relative; }
+.dropdown-menu { display: none; position: absolute; right: 0; top: 120%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); min-width: 200px; overflow: hidden; z-index: 200; }
+.dropdown-menu.active { display: block; }
+.dropdown-item { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); cursor: pointer; border-bottom: 1px solid var(--border); }
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover { background: var(--bg); color: var(--teal); }
+
+/* MAIN CONTENT */
+.main-container { max-width: 1200px; margin: 0 auto; padding: 2rem; width: 100%; flex: 1; }
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+.two-col-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+@media(max-width: 900px) {
+  .two-col-layout { grid-template-columns: 1fr; }
+  .greeting-title { display: none; }
+}
+
+.card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
+.card-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+.card-title { font-size: 1.15rem; font-weight: 600; color: var(--navy); margin: 0; }
+.card-subtitle { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+/* APPOINTMENT ITEMS */
+.appt-list { display: flex; flex-direction: column; gap: 1rem; }
+.appt-item { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+.appt-info h4 { font-size: 1rem; color: var(--navy); margin-bottom: 0.25rem; }
+.appt-info p { font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.appt-meta { text-align: right; }
+.status-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+.status-scheduled { background: #dcfce7; color: var(--success); }
+.status-cancelled { background: #fee2e2; color: var(--danger); }
+.status-completed { background: #e0f2fe; color: #0284c7; }
+
+/* ACTION CARDS */
+.action-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; background: var(--card); margin-bottom: 1.5rem; transition: transform 0.2s; }
+.action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--teal); }
+.action-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.action-title { font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 0.5rem; }
+.action-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+
+/* SPINNER */
+.spinner { border: 3px solid rgba(15, 157, 138, 0.1); border-top: 3px solid var(--teal); border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; margin: 2rem auto; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* CHAT */
+.chat-container { height: calc(100vh - 150px); display: flex; flex-direction: column; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+.chat-input { flex: 1; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2rem; outline: none; }
+.chat-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; }
+
+.message { max-width: 80%; display: flex; gap: 0.75rem; }
+.message.user { align-self: flex-end; flex-direction: row-reverse; }
+.message.agent { align-self: flex-start; }
+.msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0; }
+.message.user .msg-avatar { background: var(--navy); }
+.message.agent .msg-avatar { background: var(--teal); }
+.msg-bubble { padding: 0.85rem 1.25rem; border-radius: 1rem; font-size: 0.95rem; line-height: 1.5; }
+.message.user .msg-bubble { background: var(--navy); color: white; border-top-right-radius: 0; }
+.message.agent .msg-bubble { background: var(--bg); color: var(--text-primary); border: 1px solid var(--border); border-top-left-radius: 0; }
+
+/* MODALS */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 39, 71, 0.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: var(--card); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.modal-header h3 { font-size: 1.25rem; color: var(--navy); margin: 0; }
+.modal-close { background: none; border: none; font-size: 1.25rem; color: var(--text-secondary); cursor: pointer; }
+</style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginView" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <h1>HealthConnect</h1>
+        <p>Sign in to your account</p>
+      </div>
+      <div class="alert" id="loginAlert"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign In</button>
+      <div class="auth-switch">
+        Don't have an account? <br><br>
+        <a onclick="showAuth('registerPatient')">Register as Patient</a> &nbsp;|&nbsp; <a onclick="showAuth('registerDoctor')">Register as Doctor</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER PATIENT -->
+  <div id="registerPatientView" class="auth-wrapper hidden">
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="fa-solid fa-user-injured"></i>
+        <h1>Patient Registration</h1>
+        <p>Join HealthConnect today</p>
+      </div>
+      <div class="alert" id="rpAlert"></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="rpName" class="form-input" placeholder="John Doe">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="rpEmail" class="form-input" placeholder="john@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="rpPassword" class="form-input" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>Home Address</label>
+        <input type="text" id="rpAddress" class="form-input" placeholder="123 Main St">
+      </div>
+      <div class="form-group" style="display: flex; gap: 0.5rem;">
+        <div style="flex: 1;"><label>City</label><input type="text" id="rpCity" class="form-input" placeholder="City"></div>
+        <div style="flex: 1;"><label>State</label><input type="text" id="rpState" class="form-input" placeholder="State"></div>
+        <div style="flex: 1;"><label>Pincode</label><input type="text" id="rpPincode" class="form-input" placeholder="123456"></div>
+      </div>
+      <div class="form-group">
+        <button class="btn-outline" onclick="getLocation()"><i class="fa-solid fa-location-dot"></i> Use my current location</button>
+        <input type="hidden" id="rpLat">
+        <input type="hidden" id="rpLon">
+        <small id="rpLocStatus" style="color:var(--text-secondary); display:block; text-align:center; margin-top:0.25rem;"></small>
+      </div>
+      <button class="btn-primary" onclick="doRegisterPatient()">Create Account</button>
+      <div class="auth-switch">Already have an account? <a onclick="showAuth('login')">Sign In</a></div>
+    </div>
+  </div>
+
+  <!-- REGISTER DOCTOR -->
+  <div id="registerDoctorView" class="auth-wrapper hidden">
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="fa-solid fa-user-doctor"></i>
+        <h1>Doctor Registration</h1>
+        <p>Provider access portal</p>
+      </div>
+      <div class="alert" id="rdAlert"></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="rdName" class="form-input" placeholder="Dr. Jane Smith">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="rdEmail" class="form-input" placeholder="doctor@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="rdPassword" class="form-input" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>Specialty</label>
+        <input type="text" id="rdSpec" class="form-input" placeholder="Cardiology">
+      </div>
+      <div class="form-group">
+        <label>Hospital Name</label>
+        <input type="text" id="rdHospital" list="hospitalsList" class="form-input" placeholder="Search or enter hospital name" onchange="autoFillHospital()">
+        <datalist id="hospitalsList"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Hospital Address</label>
+        <input type="text" id="rdHospAddress" class="form-input" placeholder="123 Hospital Road">
+      </div>
+      <div class="form-group" style="display: flex; gap: 0.5rem;">
+        <div style="flex: 1;"><label>City</label><input type="text" id="rdHospCity" class="form-input" placeholder="City"></div>
+        <div style="flex: 1;"><label>State</label><input type="text" id="rdHospState" class="form-input" placeholder="State"></div>
+        <div style="flex: 1;"><label>Pincode</label><input type="text" id="rdHospPincode" class="form-input" placeholder="123456"></div>
+      </div>
+      <div class="form-group">
+        <label>Doctor ID (Verification)</label>
+        <input type="number" id="rdDocId" class="form-input" placeholder="12345">
+      </div>
+      <button class="btn-primary" onclick="doRegisterDoctor()">Register as Provider</button>
+      <div class="auth-switch">Already have an account? <a onclick="showAuth('login')">Sign In</a></div>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div id="appShell" class="hidden" style="display:flex; flex-direction:column; min-height:100vh;">
+    <header class="topbar">
+      <div class="logo-area" style="cursor:pointer" onclick="goHome()">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <h2>HealthConnect</h2>
+      </div>
+      <div class="greeting-title" id="greetingName">Welcome, User</div>
+      <div class="actions-area">
+        <div class="dropdown">
+          <button class="icon-btn" onclick="toggleDropdown('notifMenu')">
+            <i class="fa-regular fa-bell"></i>
+            <span class="badge hidden" id="notifBadge">1</span>
+          </button>
+          <div class="dropdown-menu" id="notifMenu" style="width: 250px;">
+            <div style="padding:0.75rem; border-bottom:1px solid var(--border); font-weight:600;">Notifications</div>
+            <div id="notifList">
+              <div class="dropdown-item" style="color:var(--text-secondary); justify-content:center;">No new notifications</div>
+            </div>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="icon-btn" onclick="toggleDropdown('profileMenu')">
+            <i class="fa-solid fa-user"></i>
+          </button>
+          <div class="dropdown-menu" id="profileMenu">
+            <div class="dropdown-item" onclick="openProfile()"><i class="fa-solid fa-user-circle"></i> Profile</div>
+            <div class="dropdown-item" onclick="openSettings()"><i class="fa-solid fa-gear"></i> Settings</div>
+            <div class="dropdown-item text-danger" onclick="doLogout()"><i class="fa-solid fa-sign-out-alt"></i> Logout</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-container">
+      <!-- PATIENT PORTAL -->
+      <div id="patientPortal" class="view-section">
+        <div class="two-col-layout">
+          <div class="left-col">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">UPCOMING APPOINTMENTS</h3>
+              </div>
+              <div id="patientApptList" class="appt-list">
+                <div class="spinner"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">PREVIOUS APPOINTMENTS</h3>
+              </div>
+              <div id="patientPrevApptList" class="appt-list">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+          <div class="right-col">
+            <div class="action-card">
+              <div class="action-icon">🤖</div>
+              <h3 class="action-title">Heali</h3>
+              <p class="action-desc">Your AI Healthcare Companion</p>
+              <button class="btn-primary" onclick="openHeali()">Talk to Heali</button>
+            </div>
+            <div class="action-card">
+              <div class="action-icon">📅</div>
+              <h3 class="action-title">Book Manually</h3>
+              <button class="btn-outline" onclick="openManualBooking()">Book Appointment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCTOR PORTAL -->
+      <div id="doctorPortal" class="view-section">
+        <div class="two-col-layout">
+          <div class="left-col">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">UPCOMING APPOINTMENTS</h3>
+              </div>
+              <div id="doctorApptList" class="appt-list">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+          <div class="right-col">
+            <div class="action-card">
+              <div class="action-icon">🤖</div>
+              <h3 class="action-title">Heali</h3>
+              <p class="action-desc">Your AI Healthcare Companion</p>
+              <button class="btn-primary" onclick="openHeali()">Talk to Heali</button>
+            </div>
+            <div class="action-card">
+              <div class="action-icon">🗓</div>
+              <h3 class="action-title">Manage Schedule</h3>
+              <button class="btn-outline" onclick="openManageSchedule()">Manage Schedule</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HEALI CHAT VIEW -->
+      <div id="chatView" class="view-section">
+        <button class="btn-outline" style="width:auto; margin-bottom:1rem; padding:0.5rem 1rem;" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+        <div class="chat-container">
+          <div style="padding:1rem; border-bottom:1px solid var(--border); font-weight:600; display:flex; gap:0.5rem; align-items:center;">
+             <i class="fa-solid fa-robot" style="color:var(--teal)"></i> Heali
+          </div>
+          <div class="chat-messages" id="messages"></div>
+          <div class="chat-input-area">
+            <input type="text" id="userInput" class="chat-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <button class="chat-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="manualBookModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Book Appointment</h3>
+        <button class="modal-close" onclick="closeModal('manualBookModal')">&times;</button>
+      </div>
+      <div class="alert" id="mbAlert"></div>
+      
+      <div id="mbStep1">
+        <div class="form-group">
+          <label>Select Hospital or Clinic</label>
+          <select id="mbHospital" class="form-input" onchange="loadDoctorsForBooking()"><option value="">-- Loading --</option></select>
+        </div>
+        <div class="form-group">
+          <label>Select Doctor</label>
+          <select id="mbDoctor" class="form-input" disabled><option value="">-- Select Hospital First --</option></select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="mbDate" class="form-input">
+        </div>
+        <button class="btn-primary" onclick="checkSlots()">Check Availability</button>
+      </div>
+
+      <div id="mbStep2" class="hidden">
+        <div class="form-group">
+          <label>Available Time Slots</label>
+          <select id="mbTime" class="form-input"></select>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn-outline" onclick="document.getElementById('mbStep2').classList.add('hidden'); document.getElementById('mbStep1').classList.remove('hidden');">Back</button>
+          <button class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="manageScheduleModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Manage Schedule</h3>
+        <button class="modal-close" onclick="closeModal('manageScheduleModal')">&times;</button>
+      </div>
+      <div class="alert" id="msAlert"></div>
+      <div class="form-group">
+        <label>Working Days</label>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <label><input type="checkbox" class="day-cb" value="0"> Mon</label>
+          <label><input type="checkbox" class="day-cb" value="1"> Tue</label>
+          <label><input type="checkbox" class="day-cb" value="2"> Wed</label>
+          <label><input type="checkbox" class="day-cb" value="3"> Thu</label>
+          <label><input type="checkbox" class="day-cb" value="4"> Fri</label>
+          <label><input type="checkbox" class="day-cb" value="5"> Sat</label>
+          <label><input type="checkbox" class="day-cb" value="6"> Sun</label>
+        </div>
+      </div>
+      <p style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Morning Shift</p>
+      <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+        <div style="flex:1"><input type="time" id="availMornStart" class="form-input"></div>
+        <div style="flex:1"><input type="time" id="availMornEnd" class="form-input"></div>
+      </div>
+      <p style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Afternoon Shift</p>
+      <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
+        <div style="flex:1"><input type="time" id="availAftStart" class="form-input"></div>
+        <div style="flex:1"><input type="time" id="availAftEnd" class="form-input"></div>
+      </div>
+      <button class="btn-primary" onclick="saveDoctorAvailability()">Save Schedule</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Profile</h3>
+        <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+      </div>
+      <div id="profileContent">Loading...</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Notification Preferences</label>
+        <label style="display:flex; gap:0.5rem; margin-top:0.5rem;"><input type="checkbox" checked> Email notifications for appointments</label>
+        <label style="display:flex; gap:0.5rem; margin-top:0.5rem;"><input type="checkbox" checked> In-app reminders</label>
+      </div>
+      <button class="btn-primary" onclick="closeModal('settingsModal')">Save Settings</button>
+    </div>
+  </div>
+
+<script>
+let token = null;
+let userName = '';
+let userRole = '';
+let allDoctors = [];
+
+// Init
+window.onload = async function() {
+  try {
+    const res = await fetch('/api/me');
+    if (res.ok) {
+      const data = await res.json();
+      token = data.token || 'cookie_auth'; userName = data.name; userRole = data.role;
+      showApp();
+    } else { showAuth('login'); }
+  } catch (e) { showAuth('login'); }
+};
+
+function showAuth(view) {
+  document.getElementById('appShell').classList.add('hidden');
+  document.querySelectorAll('.auth-wrapper').forEach(el => el.classList.add('hidden'));
+  document.getElementById(view + 'View').classList.remove('hidden');
+  if(view === 'registerDoctor') fetchHospitals();
+}
+
+function showApp() {
+  document.querySelectorAll('.auth-wrapper').forEach(el => el.classList.add('hidden'));
+  document.getElementById('appShell').classList.remove('hidden');
+  
+  const prefix = userRole === 'doctor' ? 'Dr. ' : '';
+  document.getElementById('greetingName').textContent = `Welcome, ${prefix}${userName}`;
+  
+  goHome();
+}
+
+function goHome() {
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  if (userRole === 'doctor') {
+    document.getElementById('doctorPortal').classList.add('active');
+    loadDoctorAppointments();
+  } else {
+    document.getElementById('patientPortal').classList.add('active');
+    loadPatientAppointments();
+  }
+}
+
+// DROPDOWNS & MODALS
+function toggleDropdown(id) {
+  const menu = document.getElementById(id);
+  const isAct = menu.classList.contains('active');
+  document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+  if (!isAct) menu.classList.add('active');
+}
+window.onclick = function(e) {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+  }
+}
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// AUTH APIs
+function showAlert(id, msg, type="error") {
+  const el = document.getElementById(id); el.textContent = msg; el.className = `alert ${type}`; el.style.display = 'block';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) return showAlert('loginAlert', 'Enter credentials');
+  try {
+    const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
+    if (!res.ok) throw new Error((await res.json()).detail || 'Login failed');
+    const data = await res.json();
+    token = data.token || 'cookie_auth'; userName = data.name; userRole = data.role;
+    showApp();
+  } catch (e) { showAlert('loginAlert', e.message); }
+}
+
+async function doLogout() {
+  try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
+  token = null; userName = ''; userRole = '';
+  document.getElementById('loginEmail').value = ''; document.getElementById('loginPassword').value = '';
+  showAuth('login');
+}
+
+// REGISTRATION
+async function getLocation() {
+  const status = document.getElementById('rpLocStatus');
+  if (!navigator.geolocation) return status.textContent = 'Geolocation not supported';
+  status.textContent = 'Fetching...';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude; const lon = pos.coords.longitude;
+      document.getElementById('rpLat').value = lat; document.getElementById('rpLon').value = lon;
+      try {
+        const res = await fetch(`/api/geocode/reverse?latitude=${lat}&longitude=${lon}`);
+        const data = await res.json();
+        document.getElementById('rpAddress').value = (data.house_number ? data.house_number + ', ' : '') + (data.road || data.suburb || '');
+        document.getElementById('rpCity').value = data.city || '';
+        document.getElementById('rpState').value = data.state || '';
+        document.getElementById('rpPincode').value = data.postcode || '';
+        status.textContent = 'Location set!'; status.style.color = 'var(--success)';
+      } catch(e){ status.textContent = 'Coords set. Enter address manually.'; }
+    }, (err) => { status.textContent = 'Permission denied.'; }
+  );
+}
+
+async function doRegisterPatient() {
+  const data = {
+    name: document.getElementById('rpName').value.trim(), email: document.getElementById('rpEmail').value.trim(),
+    password: document.getElementById('rpPassword').value, address: document.getElementById('rpAddress').value.trim(),
+    city: document.getElementById('rpCity').value.trim(), state: document.getElementById('rpState').value.trim(),
+    pincode: document.getElementById('rpPincode').value.trim(), latitude: document.getElementById('rpLat').value, longitude: document.getElementById('rpLon').value
+  };
+  try {
+    const res = await fetch('/api/register/patient', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+    showAuth('login'); showAlert('loginAlert', 'Registration successful! Login now.', 'success');
+  } catch (e) { showAlert('rpAlert', e.message); }
+}
+
+async function fetchHospitals() {
+  try {
+    const res = await fetch('/api/hospitals');
+    if (res.ok) {
+      const h = await res.json();
+      document.getElementById('hospitalsList').innerHTML = h.map(x => `<option value="${x.name}">`).join('');
+      window.allHospitals = h;
+    }
+  } catch(e){}
+}
+function autoFillHospital() {
+  const val = document.getElementById('rdHospital').value.toLowerCase();
+  const h = window.allHospitals?.find(x => x.name.toLowerCase() === val);
+  if(h) {
+    document.getElementById('rdHospAddress').value = h.address || ''; document.getElementById('rdHospCity').value = h.city || '';
+    document.getElementById('rdHospState').value = h.state || ''; document.getElementById('rdHospPincode').value = h.pincode || '';
+  }
+}
+async function doRegisterDoctor() {
+  const data = {
+    name: document.getElementById('rdName').value.trim(), email: document.getElementById('rdEmail').value.trim(),
+    password: document.getElementById('rdPassword').value, specialization: document.getElementById('rdSpec').value.trim(),
+    doctor_id: document.getElementById('rdDocId').value, hospital_name: document.getElementById('rdHospital').value.trim(),
+    hospital_address: document.getElementById('rdHospAddress').value.trim(), hospital_city: document.getElementById('rdHospCity').value.trim(),
+    hospital_state: document.getElementById('rdHospState').value.trim(), hospital_pincode: document.getElementById('rdHospPincode').value.trim()
+  };
+  try {
+    const res = await fetch('/api/register/doctor', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+    showAuth('login'); showAlert('loginAlert', 'Registration successful! Login now.', 'success');
+  } catch (e) { showAlert('rdAlert', e.message); }
+}
+
+function formatApptDate(dtStr) {
+  try {
+    const dt = new Date(dtStr.replace(' ', 'T'));
+    const dStr = dt.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+    const tStr = dt.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+    return `${dStr} &bull; ${tStr}`;
+  } catch(e) {
+    return dtStr;
+  }
+}
+
+async function loadPatientAppointments() {
+  const container = document.getElementById('patientApptList');
+  const prevContainer = document.getElementById('patientPrevApptList');
+  
+  try {
+    const res = await fetch('/api/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
+    const appts = await res.json();
+    if (appts.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No upcoming appointments<br><br><button class="btn-outline" style="width:auto" onclick="openManualBooking()">Book an Appointment</button></div>';
+    } else {
+      container.innerHTML = appts.map(a => `
+        <div class="appt-item">
+          <div class="appt-info">
+            <h4>Dr. ${a.doctor_name || a.doctor_id}</h4>
+            <p style="margin-bottom:0.25rem">${a.specialty || ""}</p>
+            <p style="margin-bottom:0.25rem"><i class="fa-solid fa-hospital"></i> ${a.hospital_name || ""}${a.hospital_address ? ', ' + a.hospital_address : ''}</p>
+            <p><i class="fa-regular fa-calendar"></i> ${formatApptDate(a.slot_datetime)}</p>
+          </div>
+          <div class="appt-meta">
+            <span class="status-badge status-${a.status}">${a.status}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(e) { container.innerHTML = '<p class="text-danger">Failed to load appointments</p>'; }
+  
+  try {
+    const res = await fetch('/api/appointments/previous', { headers: {'Authorization': 'Bearer ' + token} });
+    const appts = await res.json();
+    if (appts.length === 0) {
+      prevContainer.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No previous appointments</div>';
+    } else {
+      prevContainer.innerHTML = appts.map(a => `
+        <div class="appt-item">
+          <div class="appt-info">
+            <h4>Dr. ${a.doctor_name || a.doctor_id}</h4>
+            <p style="margin-bottom:0.25rem">${a.specialty || ""}</p>
+            <p style="margin-bottom:0.25rem"><i class="fa-solid fa-hospital"></i> ${a.hospital_name || ""}${a.hospital_address ? ', ' + a.hospital_address : ''}</p>
+            <p><i class="fa-regular fa-calendar"></i> ${formatApptDate(a.slot_datetime)}</p>
+          </div>
+          <div class="appt-meta">
+            <span class="status-badge status-${a.status}">${a.status}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(e) { prevContainer.innerHTML = '<p class="text-danger">Failed to load previous appointments</p>'; }
+}
+
+async function loadDoctorAppointments() {
+  const container = document.getElementById('doctorApptList');
+  try {
+    const res = await fetch('/api/doctor/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
+    const appts = await res.json();
+    if (appts.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No upcoming appointments</div>';
+      return;
+    }
+    container.innerHTML = appts.map(a => `
+      <div class="appt-item">
+        <div class="appt-info">
+          <h4>${a.patient_name}</h4>
+          <p><i class="fa-regular fa-calendar"></i> ${a.slot_datetime.split(' ')[0]} &nbsp; <i class="fa-regular fa-clock"></i> ${a.slot_datetime.split(' ')[1]}</p>
+        </div>
+        <div class="appt-meta">
+          <span class="status-badge status-${a.status}">${a.status}</span>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { container.innerHTML = '<p class="text-danger">Failed to load</p>'; }
+}
+
+// PROFILE & SETTINGS
+async function openProfile() {
+  openModal('profileModal');
+  const c = document.getElementById('profileContent'); c.innerHTML = '<div class="spinner"></div>';
+  try {
+    const isDoc = userRole === 'doctor';
+    const endpoint = isDoc ? '/api/doctor/profile' : '/api/me';
+    const res = await fetch(endpoint, { headers: {'Authorization': 'Bearer ' + token} });
+    const data = await res.json();
+    let html = `<p><strong>Name:</strong> ${data.name}</p><p><strong>Email:</strong> ${data.email}</p>`;
+    if (isDoc) {
+      html += `<p><strong>Specialty:</strong> ${data.specialty}</p>
+               <p><strong>Hospital:</strong> ${data.hospital?.name || ''}</p>
+               <p><strong>Address:</strong> ${data.hospital?.address || ''}, ${data.hospital?.city || ''}</p>`;
+    }
+    c.innerHTML = html;
+  } catch(e) { c.innerHTML = '<p>Error loading profile</p>'; }
+}
+function openSettings() { openModal('settingsModal'); }
+
+// HEALI
+function openHeali() {
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  document.getElementById('chatView').classList.add('active');
+  const msgs = document.getElementById('messages');
+  if(msgs.innerHTML === '') {
+     msgs.innerHTML = `<div class="message agent"><div class="msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="msg-bubble">Hello! I'm Heali. How can I assist you today?</div></div>`;
+  }
+}
+async function sendMessage() {
+  const inp = document.getElementById('userInput');
+  const text = inp.value.trim(); if(!text) return;
+  inp.value = '';
+  document.getElementById('messages').innerHTML += `<div class="message user"><div class="msg-avatar"><i class="fa-solid fa-user"></i></div><div class="msg-bubble">${text}</div></div>`;
+  
+  try {
+    const res = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({message: text}) });
+    const data = await res.json();
+    let reply = data.reply || '';
+    if(typeof reply === 'string' && reply.startsWith('{')) {
+        try { let j = JSON.parse(reply); reply = j.message || reply; } catch(e){}
+    }
+    document.getElementById('messages').innerHTML += `<div class="message agent"><div class="msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="msg-bubble">${reply}</div></div>`;
+    document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
+  } catch(e) {}
+}
+
+// MANUAL BOOKING
+async function openManualBooking() {
+  openModal('manualBookModal');
+  document.getElementById('mbStep1').classList.remove('hidden');
+  document.getElementById('mbStep2').classList.add('hidden');
+  document.getElementById('mbAlert').style.display = 'none';
+  
+  try {
+    const res = await fetch('/api/doctors');
+    allDoctors = await res.json();
+    // Unique hospitals
+    const hospitals = [...new Set(allDoctors.map(d => d.hospital_name).filter(n => n))];
+    let hHtml = '<option value="">-- Select Hospital --</option>';
+    hospitals.forEach(h => hHtml += `<option value="${h}">${h}</option>`);
+    document.getElementById('mbHospital').innerHTML = hHtml;
+  } catch(e){}
+}
+function loadDoctorsForBooking() {
+  const h = document.getElementById('mbHospital').value;
+  const docSel = document.getElementById('mbDoctor');
+  if(!h) { docSel.disabled = true; return; }
+  const docs = allDoctors.filter(d => d.hospital_name === h);
+  docSel.innerHTML = '<option value="">-- Select Doctor --</option>' + docs.map(d => `<option value="${d.doctor_id}">${d.name} (${d.specialty})</option>`).join('');
+  docSel.disabled = false;
+}
+async function checkSlots() {
+  const did = document.getElementById('mbDoctor').value;
+  const dt = document.getElementById('mbDate').value;
+  if(!did || !dt) return showAlert('mbAlert', 'Select doctor and date');
+  try {
+    const res = await fetch(`/api/doctors/${did}/slots?date=${dt}`);
+    if(!res.ok) throw new Error((await res.json()).detail);
+    const data = await res.json();
+    if(!data.free_slots || data.free_slots.length === 0) throw new Error("No slots available");
+    
+    document.getElementById('mbTime').innerHTML = data.free_slots.map(t => {
+      const dt = new Date(t.replace(' ', 'T'));
+      const dStr = dt.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+      const tStr = dt.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+      return `<option value="${t}">${dStr} • ${tStr}</option>`;
+    }).join('');
+    document.getElementById('mbStep1').classList.add('hidden');
+    document.getElementById('mbStep2').classList.remove('hidden');
+    document.getElementById('mbAlert').style.display = 'none';
+  } catch(e) { showAlert('mbAlert', e.message); }
+}
+async function confirmBooking() {
+  const req = {
+    doctor_id: parseInt(document.getElementById('mbDoctor').value),
+    date: document.getElementById('mbDate').value,
+    time: document.getElementById('mbTime').value
+  };
+  try {
+    const res = await fetch('/api/appointments/book', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
+    if(!res.ok) throw new Error((await res.json()).detail);
+    closeModal('manualBookModal');
+    loadPatientAppointments();
+    // dummy notification
+    document.getElementById('notifBadge').classList.remove('hidden');
+    document.getElementById('notifList').innerHTML = `<div class="dropdown-item">Appointment confirmed for ${req.date} ${req.time}</div>`;
+  } catch(e) { showAlert('mbAlert', e.message); }
+}
+
+// MANAGE SCHEDULE
+async function openManageSchedule() {
+  openModal('manageScheduleModal');
+  try {
+    const res = await fetch('/api/doctor/profile', { headers: {'Authorization': 'Bearer ' + token} });
+    const data = await res.json();
+    let workDays = (data.work_days || "").split(',');
+    document.querySelectorAll('.day-cb').forEach(cb => cb.checked = workDays.includes(cb.value));
+    
+    let mStart = '', mEnd = '', aStart = '', aEnd = '';
+    if(data.work_start) {
+      const parts = data.work_start.split(',');
+      if(parts.length > 0) mStart = parts[0];
+      if(parts.length > 1) aStart = parts[1];
+    }
+    if(data.work_end) {
+      const parts = data.work_end.split(',');
+      if(parts.length > 0) mEnd = parts[0];
+      if(parts.length > 1) aEnd = parts[1];
+    }
+    // Default schedule if empty
+    document.getElementById('availMornStart').value = mStart || '09:00';
+    document.getElementById('availMornEnd').value = mEnd || '11:30';
+    document.getElementById('availAftStart').value = aStart || '13:00';
+    document.getElementById('availAftEnd').value = aEnd || '17:00';
+  } catch(e){}
+}
+async function saveDoctorAvailability() {
+  const days = Array.from(document.querySelectorAll('.day-cb:checked')).map(cb => cb.value).join(',');
+  const req = {
+    days: days, morning_start: document.getElementById('availMornStart').value, morning_end: document.getElementById('availMornEnd').value,
+    afternoon_start: document.getElementById('availAftStart').value, afternoon_end: document.getElementById('availAftEnd').value
+  };
+  try {
+    const res = await fetch('/api/doctor/availability', { method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
+    if (!res.ok) throw new Error();
+    closeModal('manageScheduleModal');
+  } catch(e) { showAlert('msAlert', 'Failed to save schedule'); }
+}
+</script>
+</body>
+</html>
