@@ -49,6 +49,19 @@ class Doctor(Base):
     work_days = Column(String(50), nullable=True)
     professional_id = Column(String(100), nullable=True)
 
+class DoctorAvailabilityException(Base):
+    __tablename__ = 'doctor_availability_exceptions'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    doctor_id = Column(Integer, ForeignKey('doctors.id'), nullable=False)
+    date = Column(String(50), nullable=False)
+    status = Column(String(50), nullable=False, default="unavailable")
+    reason = Column(String(255), nullable=True)
+    created_at = Column(String(50), nullable=False, default="now()")
+    
+    __table_args__ = (
+        UniqueConstraint('doctor_id', 'date', name='_doctor_date_uc'),
+    )
+
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)

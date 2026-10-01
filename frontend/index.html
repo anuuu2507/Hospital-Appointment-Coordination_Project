@@ -35,8 +35,9 @@ input, select { font-family: inherit; }
 .text-secondary { color: var(--text-secondary); }
 
 /* AUTH VIEWS */
-.auth-wrapper { width: 100vw; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); padding: 2rem; position: fixed; top: 0; left: 0; z-index: 1000; overflow-y: auto; }
-.auth-card { background: var(--card); padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 440px; margin: auto; }
+.auth-wrapper { width: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: var(--navy); padding: 2rem; position: absolute; top: 0; left: 0; z-index: 1000; overflow-x: hidden; }
+.auth-wrapper::before, .auth-wrapper::after { content: ''; margin: auto; }
+.auth-card { background: var(--card); padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 440px; margin: 0 auto; flex-shrink: 0; }
 .auth-header { text-align: center; margin-bottom: 2rem; }
 .auth-header i { font-size: 2.5rem; color: var(--teal); margin-bottom: 1rem; }
 .auth-header h1 { font-size: 1.5rem; color: var(--navy); font-weight: 700; margin-bottom: 0.25rem; }
@@ -438,7 +439,41 @@ input, select { font-family: inherit; }
         <div style="flex:1"><input type="time" id="availAftStart" class="form-input"></div>
         <div style="flex:1"><input type="time" id="availAftEnd" class="form-input"></div>
       </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+          <p style="font-weight:600; font-size:0.9rem; margin:0;">Availability Exceptions</p>
+          <button class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.8rem; width:auto;" onclick="openAddExceptionModal()">+ Add Unavailable Date</button>
+        </div>
+        <div id="exceptionsList" style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem; max-height: 150px; overflow-y: auto;">
+           <!-- list goes here -->
+        </div>
+      </div>
+
       <button class="btn-primary" onclick="saveDoctorAvailability()">Save Schedule</button>
+    </div>
+  </div>
+
+  <!-- NEW MODAL -->
+  <div class="modal-overlay" id="addExceptionModal">
+    <div class="modal-content" style="max-width: 400px; z-index: 2000;">
+      <div class="modal-header">
+        <h3>Mark Unavailable</h3>
+        <button class="modal-close" onclick="closeModal('addExceptionModal')">&times;</button>
+      </div>
+      <div class="alert" id="excAlert"></div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="excDate" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>Reason (optional)</label>
+        <input type="text" id="excReason" class="form-input" placeholder="e.g. Personal leave">
+      </div>
+      <div style="display:flex; gap:1rem; margin-top: 1rem;">
+        <button class="btn-outline" onclick="closeModal('addExceptionModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveException()">Mark Unavailable</button>
+      </div>
     </div>
   </div>
 
@@ -473,6 +508,12 @@ let userName = '';
 let userRole = '';
 let allDoctors = [];
 
+function formatDocName(name, id) {
+  let dName = name || id || '';
+  if (typeof dName === 'string' && dName.trim().startsWith('Dr.')) return dName.trim();
+  return 'Dr. ' + dName;
+}
+
 // Init
 window.onload = async function() {
   try {
@@ -496,8 +537,8 @@ function showApp() {
   document.querySelectorAll('.auth-wrapper').forEach(el => el.classList.add('hidden'));
   document.getElementById('appShell').classList.remove('hidden');
   
-  const prefix = userRole === 'doctor' ? 'Dr. ' : '';
-  document.getElementById('greetingName').textContent = `Welcome, ${prefix}${userName}`;
+  const displayName = userRole === 'doctor' ? formatDocName(userName) : userName;
+  document.getElementById('greetingName').textContent = `Welcome, ${displayName}`;
   
   goHome();
 }
@@ -646,7 +687,7 @@ async function loadPatientAppointments() {
       container.innerHTML = appts.map(a => `
         <div class="appt-item">
           <div class="appt-info">
-            <h4>Dr. ${a.doctor_name || a.doctor_id}</h4>
+            <h4>${formatDocName(a.doctor_name, a.doctor_id)}</h4>
             <p style="margin-bottom:0.25rem">${a.specialty || ""}</p>
             <p style="margin-bottom:0.25rem"><i class="fa-solid fa-hospital"></i> ${a.hospital_name || ""}${a.hospital_address ? ', ' + a.hospital_address : ''}</p>
             <p><i class="fa-regular fa-calendar"></i> ${formatApptDate(a.slot_datetime)}</p>
@@ -668,7 +709,7 @@ async function loadPatientAppointments() {
       prevContainer.innerHTML = appts.map(a => `
         <div class="appt-item">
           <div class="appt-info">
-            <h4>Dr. ${a.doctor_name || a.doctor_id}</h4>
+            <h4>${formatDocName(a.doctor_name, a.doctor_id)}</h4>
             <p style="margin-bottom:0.25rem">${a.specialty || ""}</p>
             <p style="margin-bottom:0.25rem"><i class="fa-solid fa-hospital"></i> ${a.hospital_name || ""}${a.hospital_address ? ', ' + a.hospital_address : ''}</p>
             <p><i class="fa-regular fa-calendar"></i> ${formatApptDate(a.slot_datetime)}</p>
@@ -774,7 +815,7 @@ function loadDoctorsForBooking() {
   const docSel = document.getElementById('mbDoctor');
   if(!h) { docSel.disabled = true; return; }
   const docs = allDoctors.filter(d => d.hospital_name === h);
-  docSel.innerHTML = '<option value="">-- Select Doctor --</option>' + docs.map(d => `<option value="${d.doctor_id}">${d.name} (${d.specialty})</option>`).join('');
+  docSel.innerHTML = '<option value="">-- Select Doctor --</option>' + docs.map(d => `<option value="${d.doctor_id}">${formatDocName(d.name)} (${d.specialty})</option>`).join('');
   docSel.disabled = false;
 }
 async function checkSlots() {
@@ -818,6 +859,7 @@ async function confirmBooking() {
 // MANAGE SCHEDULE
 async function openManageSchedule() {
   openModal('manageScheduleModal');
+  loadExceptions();
   try {
     const res = await fetch('/api/doctor/profile', { headers: {'Authorization': 'Bearer ' + token} });
     const data = await res.json();
@@ -854,6 +896,58 @@ async function saveDoctorAvailability() {
     closeModal('manageScheduleModal');
   } catch(e) { showAlert('msAlert', 'Failed to save schedule'); }
 }
+
+  // EXCEPTIONS API
+  async function loadExceptions() {
+    const container = document.getElementById('exceptionsList');
+    try {
+      const res = await fetch('/api/doctor/availability/exceptions', { headers: {'Authorization': 'Bearer ' + token} });
+      const exps = await res.json();
+      if(exps.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-secondary); font-size:0.85rem; margin:0; text-align:center;">No date-specific exceptions</p>';
+      } else {
+        container.innerHTML = exps.map(e => \
+          <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem; border-bottom: 1px solid var(--border);">
+            <div>
+              <p style="margin:0; font-weight:600; font-size:0.85rem;">\</p>
+              <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">\</p>
+            </div>
+            <button class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.7rem; color:var(--danger); border-color:var(--danger); width:auto;" onclick="deleteException('\')">Remove</button>
+          </div>
+        \).join('');
+      }
+    } catch(e) {}
+  }
+
+  function openAddExceptionModal() {
+    document.getElementById('excAlert').style.display = 'none';
+    document.getElementById('excDate').value = '';
+    document.getElementById('excReason').value = '';
+    openModal('addExceptionModal');
+  }
+
+  async function saveException() {
+    const dt = document.getElementById('excDate').value;
+    const rsn = document.getElementById('excReason').value.trim();
+    if(!dt) return showAlert('excAlert', 'Please select a date');
+    try {
+      const res = await fetch('/api/doctor/availability/exceptions', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({date: dt, reason: rsn}) });
+      if(!res.ok) throw new Error((await res.json()).detail || 'Failed to add exception');
+      closeModal('addExceptionModal');
+      loadExceptions();
+    } catch(e) { showAlert('excAlert', e.message); }
+  }
+
+  async function deleteException(date) {
+    if(!confirm(\Remove exception for \?\)) return;
+    try {
+      await fetch(\/api/doctor/availability/exceptions/\\, { method: 'DELETE', headers: {'Authorization': 'Bearer ' + token} });
+      loadExceptions();
+    } catch(e) { alert('Failed to remove exception'); }
+  }
 </script>
+
 </body>
 </html>
+
+

@@ -402,6 +402,10 @@ def serve_ui():
 # ----------------- NEW ENDPOINTS ----------------- #
 
 
+class ExceptionRequest(BaseModel):
+    date: str
+    reason: str = None
+
 class AvailabilityUpdate(BaseModel):
     days: str # comma separated string "0,1,2,3,4"
     morning_start: str
@@ -519,6 +523,44 @@ def update_availability(req: AvailabilityUpdate, user=Depends(require_role("doct
     db.commit()
     db.close()
     return {"message": "Availability updated"}
+
+@app.get("/api/doctor/availability/exceptions")
+def get_exceptions(user=Depends(require_role("doctor"))):
+    db = get_db()
+    rows = db.execute("SELECT date, reason FROM doctor_availability_exceptions WHERE doctor_id=? ORDER BY date ASC", (user.get("doctor_id"),)).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+@app.post("/api/doctor/availability/exceptions")
+def add_exception(req: ExceptionRequest, user=Depends(require_role("doctor"))):
+    db = get_db()
+    try:
+        dt = datetime.strptime(req.date, "%Y-%m-%d").date()
+    except ValueError:
+        db.close()
+        raise HTTPException(status_code=400, detail="Invalid date format.")
+        
+    if dt < datetime.now().date():
+        db.close()
+        raise HTTPException(status_code=400, detail="Cannot mark a past date as unavailable.")
+        
+    existing = db.execute("SELECT id FROM doctor_availability_exceptions WHERE doctor_id=? AND date=?", (user.get("doctor_id"), req.date)).fetchone()
+    if existing:
+        db.close()
+        raise HTTPException(status_code=400, detail="Date is already marked as unavailable.")
+        
+    db.execute("INSERT INTO doctor_availability_exceptions (doctor_id, date, reason) VALUES (?, ?, ?)", (user.get("doctor_id"), req.date, req.reason or "Personal leave"))
+    db.commit()
+    db.close()
+    return {"message": "Exception added"}
+
+@app.delete("/api/doctor/availability/exceptions/{date}")
+def delete_exception(date: str, user=Depends(require_role("doctor"))):
+    db = get_db()
+    db.execute("DELETE FROM doctor_availability_exceptions WHERE doctor_id=? AND date=?", (user.get("doctor_id"), date))
+    db.commit()
+    db.close()
+    return {"message": "Exception removed"}
 
 @app.put("/api/appointments/{appt_id}/status")
 def update_appointment_status(appt_id: int, status_update: dict, user=Depends(require_role("doctor"))):

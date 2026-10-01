@@ -81,11 +81,16 @@ def check_slots(doctor_id: int, date: str, **_):
         db.close()
         return {"error": f"Slots are only available within {BOOKING_WINDOW_DAYS} days from today."}
 
+    exception = db.execute("SELECT id FROM doctor_availability_exceptions WHERE doctor_id=? AND date=? AND status='unavailable'", (doctor_id, date)).fetchone()
+    if exception:
+        db.close()
+        return {"doctor": doctor["name"], "date": date, "free_slots": []}
+
     weekday = req_date.weekday()
     work_days = [int(d) for d in doctor["work_days"].split(",") if d]
     if weekday not in work_days:
         db.close()
-        return {"error": f"Dr. {doctor['name']} does not work on {_weekday_name(weekday)}s."}
+        return {"error": f"{doctor['name']} does not work on {_weekday_name(weekday)}s."}
 
     work_start = datetime.strptime(doctor["work_start"], "%H:%M")
     work_end = datetime.strptime(doctor["work_end"], "%H:%M")
@@ -150,11 +155,17 @@ def book_appointment(doctor_id: int, slot_datetime: str, caller_id: int, **_):
         db.close()
         return {"error": f"Booking window is {BOOKING_WINDOW_DAYS} days from today."}
 
+    date_str = slot_dt.date().isoformat()
+    exception = db.execute("SELECT id FROM doctor_availability_exceptions WHERE doctor_id=? AND date=? AND status='unavailable'", (doctor_id, date_str)).fetchone()
+    if exception:
+        db.close()
+        return {"error": f"{doctor['name']} is unavailable on {date_str}."}
+
     weekday = slot_dt.weekday()
     work_days = [int(d) for d in doctor["work_days"].split(",") if d]
     if weekday not in work_days:
         db.close()
-        return {"error": f"Dr. {doctor['name']} does not work on {_weekday_name(weekday)}s."}
+        return {"error": f"{doctor['name']} does not work on {_weekday_name(weekday)}s."}
 
     work_start = datetime.strptime(doctor["work_start"], "%H:%M").time()
     work_end = datetime.strptime(doctor["work_end"], "%H:%M").time()
@@ -404,7 +415,7 @@ def update_doctor_hours(doctor_id: int, work_start: str, work_end: str, work_day
 
     day_names = [_weekday_name(int(d)) for d in day_list]
     return {
-        "message": f"Dr. {doctor['name']} updated to {work_start}-{work_end}, {', '.join(day_names)}.",
+        "message": f"{doctor['name']} updated to {work_start}-{work_end}, {', '.join(day_names)}.",
     }
 
 
