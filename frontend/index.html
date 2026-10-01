@@ -508,6 +508,41 @@ let userName = '';
 let userRole = '';
 let allDoctors = [];
 
+let isRefreshing = false;
+let refreshPromise = null;
+async function apiFetch(url, options = {}) {
+  let res = await fetch(url, options);
+  if (res.status === 401 && !url.includes('/api/login') && !url.includes('/api/refresh') && !url.includes('/api/logout') && !url.includes('/api/register')) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      refreshPromise = fetch('/api/refresh', { method: 'POST' }).then(async r => {
+        if (r.ok) {
+           const data = await r.json();
+           token = data.token;
+           return token;
+        }
+        throw new Error('Refresh failed');
+      }).finally(() => {
+        isRefreshing = false;
+      });
+    }
+    
+    try {
+      await refreshPromise;
+      if(options.headers && options.headers['Authorization']) {
+         options.headers['Authorization'] = 'Bearer ' + token;
+      }
+      res = await fetch(url, options);
+    } catch (e) {
+      if (!url.includes('/api/me')) {
+        doLogout();
+      }
+    }
+  }
+  return res;
+}
+
+
 function formatDocName(name, id) {
   let dName = name || id || '';
   if (typeof dName === 'string' && dName.trim().startsWith('Dr.')) return dName.trim();
@@ -517,7 +552,7 @@ function formatDocName(name, id) {
 // Init
 window.onload = async function() {
   try {
-    const res = await fetch('/api/me');
+    const res = await apiFetch('/api/me');
     if (res.ok) {
       const data = await res.json();
       token = data.token || 'cookie_auth'; userName = data.name; userRole = data.role;
@@ -579,7 +614,7 @@ async function doLogin() {
   const password = document.getElementById('loginPassword').value;
   if (!email || !password) return showAlert('loginAlert', 'Enter credentials');
   try {
-    const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
+    const res = await apiFetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
     if (!res.ok) throw new Error((await res.json()).detail || 'Login failed');
     const data = await res.json();
     token = data.token || 'cookie_auth'; userName = data.name; userRole = data.role;
@@ -588,7 +623,7 @@ async function doLogin() {
 }
 
 async function doLogout() {
-  try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
+  try { await apiFetch('/api/logout', { method: 'POST' }); } catch (e) {}
   token = null; userName = ''; userRole = '';
   document.getElementById('loginEmail').value = ''; document.getElementById('loginPassword').value = '';
   showAuth('login');
@@ -604,7 +639,7 @@ async function getLocation() {
       const lat = pos.coords.latitude; const lon = pos.coords.longitude;
       document.getElementById('rpLat').value = lat; document.getElementById('rpLon').value = lon;
       try {
-        const res = await fetch(`/api/geocode/reverse?latitude=${lat}&longitude=${lon}`);
+        const res = await apiFetch(`/api/geocode/reverse?latitude=${lat}&longitude=${lon}`);
         const data = await res.json();
         document.getElementById('rpAddress').value = (data.house_number ? data.house_number + ', ' : '') + (data.road || data.suburb || '');
         document.getElementById('rpCity').value = data.city || '';
@@ -624,7 +659,7 @@ async function doRegisterPatient() {
     pincode: document.getElementById('rpPincode').value.trim(), latitude: document.getElementById('rpLat').value, longitude: document.getElementById('rpLon').value
   };
   try {
-    const res = await fetch('/api/register/patient', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    const res = await apiFetch('/api/register/patient', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
     showAuth('login'); showAlert('loginAlert', 'Registration successful! Login now.', 'success');
   } catch (e) { showAlert('rpAlert', e.message); }
@@ -632,7 +667,7 @@ async function doRegisterPatient() {
 
 async function fetchHospitals() {
   try {
-    const res = await fetch('/api/hospitals');
+    const res = await apiFetch('/api/hospitals');
     if (res.ok) {
       const h = await res.json();
       document.getElementById('hospitalsList').innerHTML = h.map(x => `<option value="${x.name}">`).join('');
@@ -657,7 +692,7 @@ async function doRegisterDoctor() {
     hospital_state: document.getElementById('rdHospState').value.trim(), hospital_pincode: document.getElementById('rdHospPincode').value.trim()
   };
   try {
-    const res = await fetch('/api/register/doctor', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    const res = await apiFetch('/api/register/doctor', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
     showAuth('login'); showAlert('loginAlert', 'Registration successful! Login now.', 'success');
   } catch (e) { showAlert('rdAlert', e.message); }
@@ -679,7 +714,7 @@ async function loadPatientAppointments() {
   const prevContainer = document.getElementById('patientPrevApptList');
   
   try {
-    const res = await fetch('/api/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
+    const res = await apiFetch('/api/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
     const appts = await res.json();
     if (appts.length === 0) {
       container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No upcoming appointments<br><br><button class="btn-outline" style="width:auto" onclick="openManualBooking()">Book an Appointment</button></div>';
@@ -701,7 +736,7 @@ async function loadPatientAppointments() {
   } catch(e) { container.innerHTML = '<p class="text-danger">Failed to load appointments</p>'; }
   
   try {
-    const res = await fetch('/api/appointments/previous', { headers: {'Authorization': 'Bearer ' + token} });
+    const res = await apiFetch('/api/appointments/previous', { headers: {'Authorization': 'Bearer ' + token} });
     const appts = await res.json();
     if (appts.length === 0) {
       prevContainer.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No previous appointments</div>';
@@ -726,7 +761,7 @@ async function loadPatientAppointments() {
 async function loadDoctorAppointments() {
   const container = document.getElementById('doctorApptList');
   try {
-    const res = await fetch('/api/doctor/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
+    const res = await apiFetch('/api/doctor/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
     const appts = await res.json();
     if (appts.length === 0) {
       container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No upcoming appointments</div>';
@@ -753,7 +788,7 @@ async function openProfile() {
   try {
     const isDoc = userRole === 'doctor';
     const endpoint = isDoc ? '/api/doctor/profile' : '/api/me';
-    const res = await fetch(endpoint, { headers: {'Authorization': 'Bearer ' + token} });
+    const res = await apiFetch(endpoint, { headers: {'Authorization': 'Bearer ' + token} });
     const data = await res.json();
     let html = `<p><strong>Name:</strong> ${data.name}</p><p><strong>Email:</strong> ${data.email}</p>`;
     if (isDoc) {
@@ -782,7 +817,7 @@ async function sendMessage() {
   document.getElementById('messages').innerHTML += `<div class="message user"><div class="msg-avatar"><i class="fa-solid fa-user"></i></div><div class="msg-bubble">${text}</div></div>`;
   
   try {
-    const res = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({message: text}) });
+    const res = await apiFetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({message: text}) });
     const data = await res.json();
     let reply = data.reply || '';
     if(typeof reply === 'string' && reply.startsWith('{')) {
@@ -801,7 +836,7 @@ async function openManualBooking() {
   document.getElementById('mbAlert').style.display = 'none';
   
   try {
-    const res = await fetch('/api/doctors');
+    const res = await apiFetch('/api/doctors');
     allDoctors = await res.json();
     // Unique hospitals
     const hospitals = [...new Set(allDoctors.map(d => d.hospital_name).filter(n => n))];
@@ -823,7 +858,7 @@ async function checkSlots() {
   const dt = document.getElementById('mbDate').value;
   if(!did || !dt) return showAlert('mbAlert', 'Select doctor and date');
   try {
-    const res = await fetch(`/api/doctors/${did}/slots?date=${dt}`);
+    const res = await apiFetch(`/api/doctors/${did}/slots?date=${dt}`);
     if(!res.ok) throw new Error((await res.json()).detail);
     const data = await res.json();
     if(!data.free_slots || data.free_slots.length === 0) throw new Error("No slots available");
@@ -846,7 +881,7 @@ async function confirmBooking() {
     time: document.getElementById('mbTime').value
   };
   try {
-    const res = await fetch('/api/appointments/book', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
+    const res = await apiFetch('/api/appointments/book', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
     if(!res.ok) throw new Error((await res.json()).detail);
     closeModal('manualBookModal');
     loadPatientAppointments();
@@ -861,7 +896,7 @@ async function openManageSchedule() {
   openModal('manageScheduleModal');
   loadExceptions();
   try {
-    const res = await fetch('/api/doctor/profile', { headers: {'Authorization': 'Bearer ' + token} });
+    const res = await apiFetch('/api/doctor/profile', { headers: {'Authorization': 'Bearer ' + token} });
     const data = await res.json();
     let workDays = (data.work_days || "").split(',');
     document.querySelectorAll('.day-cb').forEach(cb => cb.checked = workDays.includes(cb.value));
@@ -891,7 +926,7 @@ async function saveDoctorAvailability() {
     afternoon_start: document.getElementById('availAftStart').value, afternoon_end: document.getElementById('availAftEnd').value
   };
   try {
-    const res = await fetch('/api/doctor/availability', { method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
+    const res = await apiFetch('/api/doctor/availability', { method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
     if (!res.ok) throw new Error();
     closeModal('manageScheduleModal');
   } catch(e) { showAlert('msAlert', 'Failed to save schedule'); }
@@ -901,20 +936,20 @@ async function saveDoctorAvailability() {
   async function loadExceptions() {
     const container = document.getElementById('exceptionsList');
     try {
-      const res = await fetch('/api/doctor/availability/exceptions', { headers: {'Authorization': 'Bearer ' + token} });
+      const res = await apiFetch('/api/doctor/availability/exceptions', { headers: {'Authorization': 'Bearer ' + token} });
       const exps = await res.json();
       if(exps.length === 0) {
         container.innerHTML = '<p style="color:var(--text-secondary); font-size:0.85rem; margin:0; text-align:center;">No date-specific exceptions</p>';
       } else {
-        container.innerHTML = exps.map(e => \
+        container.innerHTML = exps.map(e => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem; border-bottom: 1px solid var(--border);">
             <div>
-              <p style="margin:0; font-weight:600; font-size:0.85rem;">\</p>
-              <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">\</p>
+              <p style="margin:0; font-weight:600; font-size:0.85rem;">${e.date}</p>
+              <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${e.reason || 'Unavailable'}</p>
             </div>
-            <button class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.7rem; color:var(--danger); border-color:var(--danger); width:auto;" onclick="deleteException('\')">Remove</button>
+            <button class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.7rem; color:var(--danger); border-color:var(--danger); width:auto;" onclick="deleteException('${e.date}')">Remove</button>
           </div>
-        \).join('');
+        `).join('');
       }
     } catch(e) {}
   }
@@ -931,7 +966,7 @@ async function saveDoctorAvailability() {
     const rsn = document.getElementById('excReason').value.trim();
     if(!dt) return showAlert('excAlert', 'Please select a date');
     try {
-      const res = await fetch('/api/doctor/availability/exceptions', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({date: dt, reason: rsn}) });
+      const res = await apiFetch('/api/doctor/availability/exceptions', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({date: dt, reason: rsn}) });
       if(!res.ok) throw new Error((await res.json()).detail || 'Failed to add exception');
       closeModal('addExceptionModal');
       loadExceptions();
@@ -939,9 +974,9 @@ async function saveDoctorAvailability() {
   }
 
   async function deleteException(date) {
-    if(!confirm(\Remove exception for \?\)) return;
+    if(!confirm(`Remove exception for ${date}?`)) return;
     try {
-      await fetch(\/api/doctor/availability/exceptions/\\, { method: 'DELETE', headers: {'Authorization': 'Bearer ' + token} });
+      await apiFetch(`/api/doctor/availability/exceptions/${date}`, { method: 'DELETE', headers: {'Authorization': 'Bearer ' + token} });
       loadExceptions();
     } catch(e) { alert('Failed to remove exception'); }
   }

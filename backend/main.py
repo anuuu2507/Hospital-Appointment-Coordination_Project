@@ -22,6 +22,7 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback_secret")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "30"))
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -211,8 +212,8 @@ def login(req: LoginRequest, response: Response):
     access_token = create_access_token(payload)
     refresh_token = create_refresh_token(payload)
     
-    response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60)
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, max_age=REFRESH_TOKEN_EXPIRE_DAYS*86400)
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=IS_PRODUCTION, samesite="lax", path="/", max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60)
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=IS_PRODUCTION, samesite="lax", path="/", max_age=REFRESH_TOKEN_EXPIRE_DAYS*86400)
 
     return {"token": access_token, "name": user["name"], "role": user["role"]}
 
@@ -220,10 +221,25 @@ def login(req: LoginRequest, response: Response):
 def get_me(user=Depends(get_current_user)):
     return {"token": "cookie", "name": user["name"], "role": user["role"]}
 
+@app.post("/api/refresh")
+def refresh_token(request: Request, response: Response):
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing refresh token")
+    
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        # Generate new access token
+        access_token = create_access_token(payload)
+        response.set_cookie(key="access_token", value=access_token, httponly=True, secure=IS_PRODUCTION, samesite="lax", path="/", max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60)
+        return {"token": access_token}
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
 @app.post("/api/logout")
 def logout(response: Response):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")
     return {"ok": True}
 
 @app.get("/api/chat/sessions")
