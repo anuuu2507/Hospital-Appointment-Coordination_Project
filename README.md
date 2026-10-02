@@ -6,25 +6,48 @@ A conversational AI agent for hospital appointment management. Patients find doc
 
 - **Backend:** Python 3.11+ / FastAPI
 - **Frontend:** HTML + Vanilla JavaScript
-- **Database:** SQLite
+- **Database:** MySQL / MariaDB (via SQLAlchemy + PyMySQL — not SQLite; `database/hospital.db` is an unused leftover file)
 - **AI:** Gemini 2.0 Flash (Google) with function calling
 
 ## Setup
 
 1. Get a Gemini API key from https://aistudio.google.com/app/apikey
-2. Install dependencies:
+
+2. Make sure a MySQL-compatible server (MySQL or MariaDB) is installed and running. `database/database.py` will create the `hospital_appointment_db` database automatically on first run, but the server itself and a working user/password must already exist. On Debian/Ubuntu:
    ```bash
-   pip install -r requirements.txt
+   sudo apt-get install -y mariadb-server
+   sudo mysqld_safe --datadir=/var/lib/mysql &   # or: sudo service mariadb start, if your init system supports it
    ```
-3. Set the API key:
+
+3. Install dependencies from the repo root:
    ```bash
-   export GEMINI_API_KEY=your_key_here
+   pip install -r backend/requirements.txt
    ```
-4. Start the server:
+   Note: `requirements.txt` does not list `google-generativeai`, which `backend/agent.py` imports directly (`import google.generativeai as genai`). Install it separately:
    ```bash
-   uvicorn main:app --reload
+   pip install google-generativeai
    ```
-5. Open http://localhost:8000
+
+4. Create `backend/.env` (see `backend/.env.example`) with, at minimum:
+   ```bash
+   GEMINI_API_KEY=your_key_here
+   JWT_SECRET_KEY=some_random_secret
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=your_mysql_password
+   DB_NAME=hospital_appointment_db
+   ```
+   `DB_PORT` defaults to `3307` in code if unset, which does not match MySQL/MariaDB's default port of `3306` — set it explicitly.
+
+5. Start the server from the **repo root** (not from inside `backend/`), since `backend/main.py` imports sibling packages as `backend.agent` / `database.database`:
+   ```bash
+   uvicorn backend.main:app --reload
+   ```
+
+6. Open http://localhost:8000
+
+Everything except the AI chat screen (login, hospital/doctor listing, slot lookup, booking) works even without a valid `GEMINI_API_KEY` — the chat endpoint will just return a "not configured" message until a real key is set.
 
 ## Demo Credentials
 
@@ -51,14 +74,17 @@ A conversational AI agent for hospital appointment management. Patients find doc
 ## Project Structure
 
 ```
-main.py          - FastAPI app (API endpoints + static serving)
-agent.py         - Gemini 2.0 Flash integration with function calling
-tools.py         - 9 tool functions with business rule enforcement
-database.py      - SQLite schema creation and seed data
-static/index.html - Chat UI (login + chat screens)
-requirements.txt - Python dependencies
-CONTEXT.md       - Domain glossary
-docs/adr/        - Architecture Decision Records
+backend/main.py          - FastAPI app (API endpoints + static serving)
+backend/agent.py         - Gemini 2.0 Flash integration with function calling
+backend/tools.py         - Tool functions with business rule enforcement
+backend/requirements.txt - Python dependencies
+backend/.env.example     - Required environment variables
+database/database.py     - MySQL/MariaDB (SQLAlchemy) schema creation and seed data
+database/hospital.db     - Unused leftover SQLite file (not read by the app)
+frontend/index.html      - Chat UI (login + chat screens), served at /
+docs/CONTEXT.md          - Domain glossary
+docs/adr/                - Architecture Decision Records
+scratch/                 - Old/experimental versions of agent, tools, main (not used by the app)
 ```
 
 ## Business Rules
