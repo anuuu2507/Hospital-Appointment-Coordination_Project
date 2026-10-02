@@ -179,12 +179,12 @@ class GeminiAgent:
         genai.configure(api_key=api_key)
         
         self.patient_model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-3.1-flash-lite",
             tools=[patient_tool],
             system_instruction=SYSTEM_PROMPT,
         )
         self.doctor_model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-3.1-flash-lite",
             tools=[doctor_tool],
             system_instruction=SYSTEM_PROMPT,
         )
