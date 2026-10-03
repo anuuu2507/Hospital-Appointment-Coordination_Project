@@ -13,17 +13,20 @@ DB_PORT = os.getenv("DB_PORT", "3307")
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_NAME = os.getenv("DB_NAME", "hospital_appointment_db")
+DB_USE_SSL = os.getenv("DB_USE_SSL", "false").lower() == "true"
+
+ssl_args = {"ssl": {}} if DB_USE_SSL else {}
 
 # Create database if it doesn't exist
 try:
-    setup_engine = create_engine(f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/")
+    setup_engine = create_engine(f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/", connect_args=ssl_args)
     with setup_engine.connect() as conn:
         conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}"))
 except Exception as e:
     print(f"Error creating database: {e}")
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-engine = create_engine(DATABASE_URL, pool_recycle=3600)
+engine = create_engine(DATABASE_URL, pool_recycle=3600, connect_args=ssl_args)
 Base = declarative_base()
 
 class Hospital(Base):
@@ -60,6 +63,18 @@ class DoctorAvailabilityException(Base):
     
     __table_args__ = (
         UniqueConstraint('doctor_id', 'date', name='_doctor_date_uc'),
+    )
+
+class DoctorWeeklySchedule(Base):
+    __tablename__ = 'doctor_weekly_schedule'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    doctor_id = Column(Integer, ForeignKey('doctors.id'), nullable=False)
+    day_of_week = Column(Integer, nullable=False) # 0=Mon, 6=Sun
+    start_time = Column(String(5), nullable=False) # HH:MM
+    end_time = Column(String(5), nullable=False) # HH:MM
+    
+    __table_args__ = (
+        UniqueConstraint('doctor_id', 'day_of_week', 'start_time', 'end_time', name='_doctor_shift_uc'),
     )
 
 class User(Base):
@@ -172,11 +187,28 @@ def init_db():
         db.commit()
         
         seed_data(db)
+        migrate_schedules(db)
         db.commit()
         db.close()
         print("Database initialized successfully.")
     except Exception as e:
         print(f"Error initializing database: {e}")
+
+def migrate_schedules(cur):
+    doctors = cur.execute("SELECT id, work_days, work_start, work_end FROM doctors").fetchall()
+    for d in doctors:
+        existing = cur.execute("SELECT id FROM doctor_weekly_schedule WHERE doctor_id=?", (d["id"],)).fetchone()
+        if not existing and d["work_days"] and d["work_start"] and d["work_end"]:
+            days = [int(x) for x in str(d["work_days"]).split(",") if x.strip().isdigit()]
+            starts = [x.strip() for x in str(d["work_start"]).split(",")]
+            ends = [x.strip() for x in str(d["work_end"]).split(",")]
+            for day in days:
+                for s, e in zip(starts, ends):
+                    if s and e:
+                        try:
+                            cur.execute("INSERT INTO doctor_weekly_schedule (doctor_id, day_of_week, start_time, end_time) VALUES (?, ?, ?, ?)", (d["id"], day, s, e))
+                        except:
+                            pass
 
 def seed_data(cur):
     hospitals = [
