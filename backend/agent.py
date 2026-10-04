@@ -12,6 +12,12 @@ You are NOT a medical robot. Be conversational, proactive when appropriate, conc
 Maintain context across messages (e.g. if a user says "Which one is closer?", refer to the doctors you just showed).
 Safety first: provide general info but do not diagnose. For emergencies, recommend local emergency services.
 
+PROACTIVE INTERACTIVITY:
+If a user requests something but information is missing (like a preferred date, time, or location), DO NOT just guess or use default tools if it would be better to ask them. For example:
+- If they say "I need a cardiologist", ask "Do you have a preferred hospital, or should I show available cardiologists near you?"
+- If they say "I want an appointment tomorrow", ask "Which specialty or doctor would you like to see?"
+If you already have enough information (either from the conversation or if they provided it all at once), then go ahead and fetch/book the info. Do NOT ask for information that has already been established in the conversation.
+
 When you need to present lists of doctors, hospitals, or appointments to the user, you MUST return your FINAL response as a raw JSON object (without markdown code blocks). The frontend will parse this JSON to render interactive cards.
 JSON FORMAT:
 {
@@ -55,7 +61,7 @@ check_slots_fd = FunctionDeclaration(
             "doctor_id": {"type": "integer", "description": "The doctor's ID."},
             "date": {"type": "string", "description": "Date in YYYY-MM-DD format."},
         },
-        "required": ["doctor_id", "date"],
+        "required": ["date"],
     },
 )
 
@@ -74,8 +80,13 @@ book_appointment_fd = FunctionDeclaration(
 
 get_my_appointments_fd = FunctionDeclaration(
     name="get_my_appointments",
-    description="Get all appointments for the logged-in patient.",
-    parameters={"type": "object", "properties": {}},
+    description="Get appointments for the logged-in patient. You can filter by 'upcoming' or 'past'.",
+    parameters={
+        "type": "object", 
+        "properties": {
+            "filter": {"type": "string", "description": "Filter by 'upcoming', 'past', or 'all'. Default is 'upcoming'."}
+        }
+    },
 )
 
 cancel_appointment_fd = FunctionDeclaration(
@@ -189,12 +200,12 @@ class GeminiAgent:
             system_instruction=SYSTEM_PROMPT,
         )
 
-    def chat(self, history: list, message: str, caller_id: int, caller_role: str, caller_name: str, doctor_id: int = None) -> str:
+    def chat(self, history: list, message: str, caller_id: int, caller_role: str, caller_name: str, doctor_id: int = None, latitude: float = None, longitude: float = None) -> str:
         today = datetime.now().strftime("%Y-%m-%d")
         
-        lat = None
-        lon = None
-        if caller_role == 'patient':
+        lat = latitude
+        lon = longitude
+        if caller_role == 'patient' and (lat is None or lon is None):
             db = get_db()
             patient_record = db.execute("SELECT latitude, longitude FROM patients WHERE user_id=?", (caller_id,)).fetchone()
             db.close()
@@ -204,10 +215,10 @@ class GeminiAgent:
 
         context_msg = f"[System: You are speaking with {caller_name} (role: {caller_role}). Today's date is {today}.]"
         if caller_role == 'patient':
-            if lat and lon:
-                context_msg += f" [System: The patient's stored coordinates are latitude={lat}, longitude={lon}.]"
+            if lat is not None and lon is not None:
+                context_msg += f" [System: The patient's current coordinates are latitude={lat}, longitude={lon}.]"
             else:
-                context_msg += " [System: The patient has no stored coordinates. If they ask for nearby hospitals or doctors, tell them their location is unavailable and ask them to provide/enable their location in their profile or registration. Do not invent a location.]"
+                context_msg += " [System: The patient has no stored coordinates. If they ask for nearby hospitals or doctors, tell them their location is unavailable and ask them to provide/enable their location in their browser or tell you a city/neighborhood. Do not invent a location.]"
 
         gemini_history = []
         for msg in history:

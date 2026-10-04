@@ -70,8 +70,13 @@ class DoctorRegisterRequest(BaseModel):
     hospital_state: str = None
     hospital_pincode: str = None
 
+from typing import Optional
+
 class ChatRequest(BaseModel):
     message: str
+    session_id: Optional[int] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 def get_current_user(request: Request):
@@ -145,11 +150,17 @@ def register_doctor(req: DoctorRegisterRequest):
         hospital_id = hospital["id"]
         
     # Insert doctor
+    # Insert doctor
     db.execute(
         "INSERT INTO doctors (name, specialty, hospital_id, work_start, work_end, work_days, professional_id) VALUES (?, ?, ?, '09:00,13:00', '11:30,17:00', '0,1,2,3,4', ?)",
         (req.name, req.specialization, hospital_id, req.doctor_id)
     )
     new_doc_id = db.execute("SELECT LAST_INSERT_ID() as id").fetchone()["id"]
+    
+    # Insert default weekly schedule
+    for day in range(5):
+        db.execute("INSERT INTO doctor_weekly_schedule (doctor_id, day_of_week, start_time, end_time) VALUES (?, ?, '09:00', '11:30')", (new_doc_id, day))
+        db.execute("INSERT INTO doctor_weekly_schedule (doctor_id, day_of_week, start_time, end_time) VALUES (?, ?, '13:00', '17:00')", (new_doc_id, day))
         
     db.execute(
         "INSERT INTO users (name, email, password_hash, role, doctor_id) VALUES (?, ?, ?, 'doctor', ?)",
@@ -301,14 +312,33 @@ def add_session_message(session_id: int, req: ChatRequest, user=Depends(get_curr
 def chat(req: ChatRequest, user=Depends(get_current_user)):
     db = get_db()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    session = db.execute("SELECT id FROM chat_sessions WHERE user_id=? ORDER BY created_at DESC LIMIT 1", (user["id"],)).fetchone()
     
-    if not session:
-        db.execute("INSERT INTO chat_sessions (user_id, title, created_at, updated_at) VALUES (?, ?, ?, ?)", (user["id"], "Chat", now, now))
-        db.commit()
-        session_id = db.execute("SELECT LAST_INSERT_ID() as id").fetchone()["id"]
-    else:
+    if req.session_id:
+        session = db.execute("SELECT id, title FROM chat_sessions WHERE id=? AND user_id=?", (req.session_id, user["id"])).fetchone()
+        if not session:
+            db.close()
+            raise HTTPException(status_code=403, detail="Unauthorized access to chat session.")
         session_id = session["id"]
+        session_title = session["title"]
+    else:
+        session = db.execute("SELECT id, title FROM chat_sessions WHERE user_id=? ORDER BY created_at DESC LIMIT 1", (user["id"],)).fetchone()
+        if not session:
+            db.execute("INSERT INTO chat_sessions (user_id, title, created_at, updated_at) VALUES (?, ?, ?, ?)", (user["id"], "New Chat", now, now))
+            db.commit()
+            session_id = db.execute("SELECT LAST_INSERT_ID() as id").fetchone()["id"]
+            session_title = "New Chat"
+        else:
+            session_id = session["id"]
+            session_title = session["title"]
+            
+    # Update title deterministically if it's "New Chat" or "Chat"
+    if session_title in ["New Chat", "Chat"] and len(req.message.strip()) > 0:
+        words = req.message.split()
+        new_title = " ".join(words[:5])
+        if len(words) > 5:
+            new_title += "..."
+        db.execute("UPDATE chat_sessions SET title=?, updated_at=? WHERE id=?", (new_title, now, session_id))
+        db.commit()
         
     db.execute("INSERT INTO chat_messages (session_id, role, content, created_at) VALUES (?, ?, ?, ?)", (session_id, "user", req.message, now))
     db.commit()
@@ -329,7 +359,9 @@ def chat(req: ChatRequest, user=Depends(get_current_user)):
         caller_id=user["id"],
         caller_role=user["role"],
         caller_name=user["name"],
-        doctor_id=user.get("doctor_id")
+        doctor_id=user.get("doctor_id"),
+        latitude=req.latitude,
+        longitude=req.longitude
     )
     
     if isinstance(reply, list):
@@ -375,7 +407,7 @@ def get_upcoming_appointments(user=Depends(get_current_user)):
             FROM appointments a 
             LEFT JOIN doctors d ON a.doctor_id = d.id
             LEFT JOIN hospitals h ON d.hospital_id = h.id
-            WHERE a.patient_id=? AND a.status='scheduled' AND a.slot_datetime >= ?
+            WHERE a.patient_id=? AND a.status='scheduled' AND a.slot_datetime > ?
             ORDER BY a.slot_datetime ASC
         ''', (user["id"], now_str)).fetchall()
     else:
@@ -383,7 +415,7 @@ def get_upcoming_appointments(user=Depends(get_current_user)):
             SELECT a.*, u.name as patient_name 
             FROM appointments a 
             LEFT JOIN users u ON a.patient_id = u.id
-            WHERE a.doctor_id=? AND a.status='scheduled' AND a.slot_datetime >= ?
+            WHERE a.doctor_id=? AND a.status='scheduled' AND a.slot_datetime > ?
             ORDER BY a.slot_datetime ASC
         ''', (user.get("doctor_id"), now_str)).fetchall()
     db.close()
@@ -399,7 +431,7 @@ def get_previous_appointments(user=Depends(get_current_user)):
             FROM appointments a 
             LEFT JOIN doctors d ON a.doctor_id = d.id
             LEFT JOIN hospitals h ON d.hospital_id = h.id
-            WHERE a.patient_id=? AND (a.status IN ('completed', 'cancelled') OR (a.status='scheduled' AND a.slot_datetime < ?))
+            WHERE a.patient_id=? AND (a.status IN ('completed', 'cancelled') OR (a.status='scheduled' AND a.slot_datetime <= ?))
             ORDER BY a.slot_datetime DESC
         ''', (user["id"], now_str)).fetchall()
         db.close()
@@ -422,12 +454,16 @@ class ExceptionRequest(BaseModel):
     date: str
     reason: str = None
 
+class Shift(BaseModel):
+    start_time: str
+    end_time: str
+
+class DaySchedule(BaseModel):
+    day_of_week: int
+    shifts: list[Shift]
+
 class AvailabilityUpdate(BaseModel):
-    days: str # comma separated string "0,1,2,3,4"
-    morning_start: str
-    morning_end: str
-    afternoon_start: str
-    afternoon_end: str
+    schedule: list[DaySchedule]
 
 class ProfileUpdate(BaseModel):
     name: str
@@ -465,6 +501,15 @@ def get_doctor_profile(user=Depends(require_role("doctor"))):
     if doctor["hospital_id"]:
         hospital = db.execute("SELECT * FROM hospitals WHERE id=?", (doctor["hospital_id"],)).fetchone()
         
+    # Get weekly schedule
+    schedule_rows = db.execute("SELECT day_of_week, start_time, end_time FROM doctor_weekly_schedule WHERE doctor_id=? ORDER BY day_of_week ASC, start_time ASC", (doctor["id"],)).fetchall()
+    schedule = {}
+    for r in schedule_rows:
+        day = r["day_of_week"]
+        if day not in schedule:
+            schedule[day] = []
+        schedule[day].append({"start_time": r["start_time"], "end_time": r["end_time"]})
+        
     db.close()
     return {
         "id": doctor["id"],
@@ -475,6 +520,7 @@ def get_doctor_profile(user=Depends(require_role("doctor"))):
         "work_days": doctor["work_days"],
         "work_start": doctor["work_start"],
         "work_end": doctor["work_end"],
+        "weekly_schedule": schedule,
         "hospital": dict(hospital) if hospital else None
     }
 
@@ -520,7 +566,7 @@ def get_doc_upcoming_appointments(user=Depends(require_role("doctor"))):
     db = get_db()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     rows = db.execute(
-        "SELECT a.*, u.name as patient_name FROM appointments a JOIN users u ON a.patient_id = u.id WHERE a.doctor_id=? AND a.slot_datetime >= ? ORDER BY a.slot_datetime ASC", 
+        "SELECT a.*, u.name as patient_name FROM appointments a JOIN users u ON a.patient_id = u.id WHERE a.doctor_id=? AND a.slot_datetime > ? ORDER BY a.slot_datetime ASC", 
         (user.get("doctor_id"), now_str)
     ).fetchall()
     db.close()
@@ -529,13 +575,22 @@ def get_doc_upcoming_appointments(user=Depends(require_role("doctor"))):
 @app.put("/api/doctor/availability")
 def update_availability(req: AvailabilityUpdate, user=Depends(require_role("doctor"))):
     db = get_db()
-    # Storing morning_start, morning_end, afternoon_start, afternoon_end in work_start and work_end as JSON or comma separated?
-    # Wait, the schema has work_start, work_end (String(10)). 
-    # If the user wants 09:00-11:30 and 13:00-17:00, we can store it as "09:00,13:00" and "11:30,17:00"
-    db.execute(
-        "UPDATE doctors SET work_days=?, work_start=?, work_end=? WHERE id=?",
-        (req.days, f"{req.morning_start},{req.afternoon_start}", f"{req.morning_end},{req.afternoon_end}", user.get("doctor_id"))
-    )
+    doc_id = user.get("doctor_id")
+    
+    # Delete old weekly schedule
+    db.execute("DELETE FROM doctor_weekly_schedule WHERE doctor_id=?", (doc_id,))
+    
+    # Validate and insert new schedule
+    for day in req.schedule:
+        for shift in day.shifts:
+            if shift.start_time >= shift.end_time:
+                db.close()
+                raise HTTPException(status_code=400, detail="Start time must be before end time")
+            db.execute(
+                "INSERT INTO doctor_weekly_schedule (doctor_id, day_of_week, start_time, end_time) VALUES (?, ?, ?, ?)",
+                (doc_id, day.day_of_week, shift.start_time, shift.end_time)
+            )
+            
     db.commit()
     db.close()
     return {"message": "Availability updated"}
@@ -593,10 +648,6 @@ def update_appointment_status(appt_id: int, status_update: dict, user=Depends(re
     return {"message": "Status updated"}
 
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
 
 
 @app.get("/api/doctors")
@@ -614,7 +665,7 @@ def get_all_doctors():
 @app.get("/api/doctors/{doctor_id}/slots")
 def get_doctor_slots(doctor_id: int, date: str):
     from backend.tools import check_slots
-    result = check_slots(doctor_id, date)
+    result = check_slots(date=date, doctor_id=doctor_id)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
@@ -635,3 +686,8 @@ def book_appointment_api(req: BookAppointmentRequest, user=Depends(get_current_u
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+

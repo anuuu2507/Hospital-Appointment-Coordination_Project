@@ -55,7 +55,12 @@ def search_doctors(specialty: str = None, hospital_name: str = None, **_):
     return {"doctors": doctors}
 
 
-def check_slots(doctor_id: int, date: str, **_):
+def check_slots(date: str, doctor_id: int = None, caller_role: str = None, auth_doctor_id: int = None, **_):
+    if caller_role == "doctor" and auth_doctor_id and not doctor_id:
+        doctor_id = auth_doctor_id
+    if not doctor_id:
+        return {"error": "doctor_id is required for patients to check slots."}
+    
     db = get_db()
 
     doctor = db.execute(
@@ -87,22 +92,36 @@ def check_slots(doctor_id: int, date: str, **_):
         return {"doctor": doctor["name"], "date": date, "free_slots": []}
 
     weekday = req_date.weekday()
-    work_days = [int(d) for d in doctor["work_days"].split(",") if d]
-    if weekday not in work_days:
+    has_any_schedule = db.execute("SELECT id FROM doctor_weekly_schedule WHERE doctor_id=? LIMIT 1", (doctor_id,)).fetchone()
+    shifts = db.execute("SELECT start_time, end_time FROM doctor_weekly_schedule WHERE doctor_id=? AND day_of_week=? ORDER BY start_time ASC", (doctor_id, weekday)).fetchall()
+    
+    if not has_any_schedule:
+        # Fallback to old logic if doctor has not been migrated or set up
+        work_days = [int(d) for d in str(doctor["work_days"]).split(",") if d.strip().isdigit()]
+        if weekday not in work_days:
+            db.close()
+            return {"error": f"{doctor['name']} does not work on {_weekday_name(weekday)}s."}
+        
+        try:
+            work_start = datetime.strptime(str(doctor["work_start"]).split(",")[0], "%H:%M")
+            work_end = datetime.strptime(str(doctor["work_end"]).split(",")[-1], "%H:%M")
+        except:
+            db.close()
+            return {"error": "Invalid schedule configuration."}
+            
+        shifts = [{"start_time": work_start.strftime("%H:%M"), "end_time": work_end.strftime("%H:%M")}]
+    elif not shifts:
         db.close()
         return {"error": f"{doctor['name']} does not work on {_weekday_name(weekday)}s."}
 
-    work_start = datetime.strptime(doctor["work_start"], "%H:%M")
-    work_end = datetime.strptime(doctor["work_end"], "%H:%M")
-
     all_slots = []
-    current = work_start
-    while current + timedelta(minutes=30) <= work_end:
-        slot_str = current.strftime("%H:%M")
-        # Hardcode lunch break
-        if not ("11:30" <= slot_str < "13:00"):
+    for shift in shifts:
+        current = datetime.strptime(shift["start_time"], "%H:%M")
+        end = datetime.strptime(shift["end_time"], "%H:%M")
+        while current + timedelta(minutes=30) <= end:
+            slot_str = current.strftime("%H:%M")
             all_slots.append(slot_str)
-        current += timedelta(minutes=30)
+            current += timedelta(minutes=30)
 
     booked = db.execute(
         "SELECT slot_datetime FROM appointments WHERE doctor_id=? AND slot_datetime LIKE ? AND status='scheduled'",
@@ -162,28 +181,48 @@ def book_appointment(doctor_id: int, slot_datetime: str, caller_id: int, **_):
         return {"error": f"{doctor['name']} is unavailable on {date_str}."}
 
     weekday = slot_dt.weekday()
-    work_days = [int(d) for d in doctor["work_days"].split(",") if d]
-    if weekday not in work_days:
+    has_any_schedule = db.execute("SELECT id FROM doctor_weekly_schedule WHERE doctor_id=? LIMIT 1", (doctor_id,)).fetchone()
+    shifts = db.execute("SELECT start_time, end_time FROM doctor_weekly_schedule WHERE doctor_id=? AND day_of_week=?", (doctor_id, weekday)).fetchall()
+    
+    if not has_any_schedule:
+        # Fallback to old logic
+        work_days = [int(d) for d in str(doctor["work_days"]).split(",") if d.strip().isdigit()]
+        if weekday not in work_days:
+            db.close()
+            return {"error": f"{doctor['name']} does not work on {_weekday_name(weekday)}s."}
+        try:
+            start_str = str(doctor["work_start"]).split(",")[0]
+            end_str = str(doctor["work_end"]).split(",")[-1]
+            shifts = [{"start_time": start_str, "end_time": end_str}]
+        except:
+            db.close()
+            return {"error": "Invalid schedule configuration."}
+    elif not shifts:
         db.close()
         return {"error": f"{doctor['name']} does not work on {_weekday_name(weekday)}s."}
 
-    work_start = datetime.strptime(doctor["work_start"], "%H:%M").time()
-    work_end = datetime.strptime(doctor["work_end"], "%H:%M").time()
-    
     slot_time = slot_dt.time()
-    if slot_time < work_start or slot_time >= work_end:
-        db.close()
-        return {"error": f"Slot is outside working hours ({doctor['work_start']}-{doctor['work_end']})."}
-
-    lunch_start = datetime.strptime("11:30", "%H:%M").time()
-    lunch_end = datetime.strptime("13:00", "%H:%M").time()
-    if lunch_start <= slot_time < lunch_end:
-        db.close()
-        return {"error": "Slot falls within the lunch break (11:30-13:00)."}
-
+    slot_end_dt = slot_dt + timedelta(minutes=30)
+    slot_end_time = slot_end_dt.time()
+    
     if slot_time.minute % 30 != 0:
         db.close()
         return {"error": "Slots must align to 30-minute intervals."}
+        
+    valid_slot = False
+    for shift in shifts:
+        s_start = datetime.strptime(shift["start_time"], "%H:%M").time()
+        s_end = datetime.strptime(shift["end_time"], "%H:%M").time()
+        # If the slot ends at exactly midnight, slot_end_time is 00:00:00, which is smaller. So we use datetime logic to be safer
+        s_start_dt = datetime.combine(slot_dt.date(), s_start)
+        s_end_dt = datetime.combine(slot_dt.date(), s_end)
+        if slot_dt >= s_start_dt and slot_end_dt <= s_end_dt:
+            valid_slot = True
+            break
+            
+    if not valid_slot:
+        db.close()
+        return {"error": "Slot is outside working hours or inside a break."}
 
     existing = db.execute(
         "SELECT id FROM appointments WHERE doctor_id=? AND slot_datetime=? AND status='scheduled'",
@@ -211,17 +250,30 @@ def book_appointment(doctor_id: int, slot_datetime: str, caller_id: int, **_):
     }
 
 
-def get_my_appointments(caller_id: int, **_):
+def get_my_appointments(caller_id: int, filter: str = "upcoming", **_):
     db = get_db()
-    rows = db.execute("""
+    now_str = _now().strftime("%Y-%m-%d %H:%M")
+    
+    query = """
         SELECT a.id, a.slot_datetime, a.status, d.name as doctor, d.specialty,
                h.name as hospital
         FROM appointments a
         JOIN doctors d ON a.doctor_id = d.id
         JOIN hospitals h ON d.hospital_id = h.id
         WHERE a.patient_id = ?
-        ORDER BY a.slot_datetime ASC
-    """, (caller_id,)).fetchall()
+    """
+    params = [caller_id]
+    
+    if filter == "upcoming":
+        query += " AND a.slot_datetime > ?"
+        params.append(now_str)
+    elif filter == "past":
+        query += " AND a.slot_datetime <= ?"
+        params.append(now_str)
+        
+    query += " ORDER BY a.slot_datetime ASC"
+    
+    rows = db.execute(query, tuple(params)).fetchall()
     db.close()
 
     appointments = [{
@@ -229,6 +281,7 @@ def get_my_appointments(caller_id: int, **_):
         "slot_datetime": r["slot_datetime"],
         "status": r["status"],
         "doctor": r["doctor"],
+        "doctor_name": r["doctor"],
         "specialty": r["specialty"],
         "hospital": r["hospital"],
     } for r in rows]
@@ -311,12 +364,14 @@ def reschedule_appointment(appointment_id: int, new_slot_datetime: str, caller_i
     }
 
 
-def get_doctor_schedule(doctor_id: int, date: str, caller_role: str, auth_doctor_id: int = None, **_):
+def get_doctor_schedule(date: str, caller_role: str, doctor_id: int = None, auth_doctor_id: int = None, **_):
     if caller_role == "doctor":
-        if str(doctor_id) != str(auth_doctor_id) and doctor_id != auth_doctor_id:
-            return {"error": "Doctors can only view their own schedules."}
+        doctor_id = auth_doctor_id
     elif caller_role != "staff":
         return {"error": "Only staff or the doctor themselves can view doctor schedules."}
+    
+    if not doctor_id:
+        return {"error": "doctor_id is required."}
 
     db = get_db()
 
@@ -379,12 +434,14 @@ def list_all_doctors(caller_role: str, **_):
     return {"doctors": doctors}
 
 
-def update_doctor_hours(doctor_id: int, work_start: str, work_end: str, work_days: str, caller_role: str, auth_doctor_id: int = None, **_):
+def update_doctor_hours(work_start: str, work_end: str, work_days: str, caller_role: str, doctor_id: int = None, auth_doctor_id: int = None, **_):
     if caller_role == "doctor":
-        if str(doctor_id) != str(auth_doctor_id) and doctor_id != auth_doctor_id:
-            return {"error": "Doctors can only update their own hours."}
+        doctor_id = auth_doctor_id
     elif caller_role != "staff":
         return {"error": "Only staff or the doctor themselves can update doctor hours."}
+
+    if not doctor_id:
+        return {"error": "doctor_id is required."}
 
     db = get_db()
 
@@ -422,7 +479,7 @@ def update_doctor_hours(doctor_id: int, work_start: str, work_end: str, work_day
 import math
 
 def haversine(lat1, lon1, lat2, lon2):
-    if not lat1 or not lon1 or not lat2 or not lon2:
+    if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
         return float('inf')
     R = 6371.0
     try:

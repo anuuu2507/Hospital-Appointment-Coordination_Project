@@ -9,23 +9,28 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root {
-  --navy: #0F2747;
-  --teal: #0F9D8A;
-  --bg: #F5F8FA;
+  --navy: #081C2C;
+  --navy-deep: #0D2B45;
+  --aqua: #20C7B5;
+  --aqua-bright: #46E0CE;
+  --mint-soft: #E8FAF7;
+  --bg: #F4F8FA;
   --card: #FFFFFF;
-  --text-primary: #172B4D;
-  --text-secondary: #64748B;
+  --text-primary: #0B2033;
+  --text-secondary: #617789;
   --border: #E2E8F0;
-  --success: #16A34A;
-  --danger: #DC2626;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
+  --success: #16A37A;
+  --warning: #E8A317;
+  --danger: #D9535F;
+  --shadow-sm: 0 1px 3px rgba(8, 28, 44, 0.05);
+  --shadow-md: 0 4px 6px rgba(8, 28, 44, 0.05);
+  --radius-md: 6px;
+  --radius-lg: 10px;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-body { background: var(--bg); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
-a { color: var(--teal); text-decoration: none; cursor: pointer; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body { background: var(--bg); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; line-height: 1.5; }
+a { color: var(--aqua); text-decoration: none; cursor: pointer; transition: color 0.2s; }
+a:hover { color: var(--aqua-bright); }
 button { cursor: pointer; border: none; font-family: inherit; transition: all 0.2s ease; }
 input, select { font-family: inherit; }
 
@@ -37,47 +42,49 @@ input, select { font-family: inherit; }
 /* AUTH VIEWS */
 .auth-wrapper { width: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: var(--navy); padding: 2rem; position: absolute; top: 0; left: 0; z-index: 1000; overflow-x: hidden; }
 .auth-wrapper::before, .auth-wrapper::after { content: ''; margin: auto; }
-.auth-card { background: var(--card); padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 440px; margin: 0 auto; flex-shrink: 0; }
+.auth-card { background: var(--card); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 440px; margin: 0 auto; flex-shrink: 0; border: 1px solid var(--border); }
 .auth-header { text-align: center; margin-bottom: 2rem; }
-.auth-header i { font-size: 2.5rem; color: var(--teal); margin-bottom: 1rem; }
-.auth-header h1 { font-size: 1.5rem; color: var(--navy); font-weight: 700; margin-bottom: 0.25rem; }
+.auth-header img { width: 64px; height: auto; margin-bottom: 1rem; }
+.auth-header h1 { font-size: 1.5rem; color: var(--navy); font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.5px; }
 .auth-header p { color: var(--text-secondary); font-size: 0.95rem; }
 .form-group { margin-bottom: 1.25rem; }
-.form-group label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
-.form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.95rem; outline: none; }
-.form-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15, 157, 138, 0.1); }
-.btn-primary { width: 100%; padding: 0.75rem 1.5rem; background: var(--teal); color: white; border-radius: var(--radius-md); font-weight: 600; font-size: 1rem; }
-.btn-primary:hover { background: #0c8272; }
-.btn-outline { width: 100%; padding: 0.75rem 1.5rem; background: transparent; border: 1px solid var(--teal); color: var(--teal); border-radius: var(--radius-md); font-weight: 600; font-size: 1rem; }
-.btn-outline:hover { background: rgba(15, 157, 138, 0.05); }
+.form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--navy); }
+.form-input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; background: var(--card); color: var(--text-primary); transition: border-color 0.2s, box-shadow 0.2s; }
+.form-input:focus { border-color: var(--aqua); box-shadow: 0 0 0 3px rgba(32, 199, 181, 0.15); }
+.btn-primary { width: 100%; padding: 0.5rem 1rem; background: var(--aqua); color: var(--navy); border-radius: var(--radius-md); font-weight: 500; font-size: 0.9rem; }
+.btn-primary:hover:not(:disabled) { background: var(--aqua-bright); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-outline { width: 100%; padding: 0.5rem 1rem; background: var(--card); border: 1px solid var(--border); color: var(--navy); border-radius: var(--radius-md); font-weight: 500; font-size: 0.9rem; }
+.btn-outline:hover:not(:disabled) { border-color: var(--aqua); background: var(--mint-soft); }
 .auth-switch { text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary); }
 .alert { padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.25rem; display: none; }
 .alert.error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
-.alert.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+.alert.success { background: var(--mint-soft); color: var(--success); border: 1px solid #bbf7d0; }
 
 /* HEADER */
 .topbar { background: var(--card); padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
 .logo-area { display: flex; align-items: center; gap: 0.75rem; }
-.logo-area i { font-size: 1.5rem; color: var(--teal); }
-.logo-area h2 { font-size: 1.25rem; color: var(--navy); font-weight: 700; margin: 0; }
+.logo-area img { height: 32px; width: auto; }
 .greeting-title { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 600; font-size: 1.1rem; color: var(--navy); }
 .actions-area { display: flex; align-items: center; gap: 1.25rem; }
-.icon-btn { background: transparent; color: var(--navy); font-size: 1.25rem; position: relative; }
-.icon-btn:hover { color: var(--teal); }
-.badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 0.6rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.icon-btn { background: transparent; color: var(--text-secondary); font-size: 1.25rem; position: relative; padding: 0.5rem; border-radius: var(--radius-md); }
+.icon-btn:hover { color: var(--navy); background: var(--bg); }
+.badge { position: absolute; top: 2px; right: 2px; background: var(--danger); color: white; font-size: 0.6rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--card); }
 
 /* DROPDOWN */
 .dropdown { position: relative; }
-.dropdown-menu { display: none; position: absolute; right: 0; top: 120%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); min-width: 200px; overflow: hidden; z-index: 200; }
-.dropdown-menu.active { display: block; }
-.dropdown-item { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); cursor: pointer; border-bottom: 1px solid var(--border); }
+.dropdown-menu { display: none; position: absolute; right: 0; top: calc(100% + 0.5rem); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); min-width: 220px; overflow: hidden; z-index: 200; }
+.dropdown-menu.active { display: block; animation: slideDown 0.2s ease; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.dropdown-item { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 .dropdown-item:last-child { border-bottom: none; }
-.dropdown-item:hover { background: var(--bg); color: var(--teal); }
+.dropdown-item:hover { background: var(--bg); color: var(--aqua); }
 
 /* MAIN CONTENT */
 .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem; width: 100%; flex: 1; }
 .view-section { display: none; }
-.view-section.active { display: block; }
+.view-section.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .two-col-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
 @media(max-width: 900px) {
@@ -85,57 +92,144 @@ input, select { font-family: inherit; }
   .greeting-title { display: none; }
 }
 
-.card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
+.card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.25rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
 .card-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-.card-title { font-size: 1.15rem; font-weight: 600; color: var(--navy); margin: 0; }
-.card-subtitle { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem; }
+.card-title { font-size: 1.15rem; font-weight: 600; color: var(--navy); margin: 0; letter-spacing: -0.25px; text-transform: uppercase; }
 
 /* APPOINTMENT ITEMS */
 .appt-list { display: flex; flex-direction: column; gap: 1rem; }
-.appt-item { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-.appt-info h4 { font-size: 1rem; color: var(--navy); margin-bottom: 0.25rem; }
+.appt-item { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center; background: var(--card); transition: border-color 0.2s, box-shadow 0.2s; }
+.appt-item:hover { border-color: var(--aqua); box-shadow: var(--shadow-sm); }
+.appt-info h4 { font-size: 1rem; color: var(--navy); margin-bottom: 0.25rem; font-weight: 600; }
 .appt-info p { font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
 .appt-meta { text-align: right; }
-.status-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-.status-scheduled { background: #dcfce7; color: var(--success); }
-.status-cancelled { background: #fee2e2; color: var(--danger); }
-.status-completed { background: #e0f2fe; color: #0284c7; }
+.status-badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-scheduled { background: var(--mint-soft); color: var(--success); }
+.status-cancelled { background: #fef2f2; color: var(--danger); }
+.status-completed { background: #f0f9ff; color: #0284c7; }
 
 /* ACTION CARDS */
-.action-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; background: var(--card); margin-bottom: 1.5rem; transition: transform 0.2s; }
-.action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--teal); }
-.action-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.action-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; background: var(--card); margin-bottom: 1.5rem; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+.action-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--aqua); }
 .action-title { font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 0.5rem; }
 .action-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
 
 /* SPINNER */
-.spinner { border: 3px solid rgba(15, 157, 138, 0.1); border-top: 3px solid var(--teal); border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; margin: 2rem auto; }
+.spinner { border: 3px solid rgba(32, 199, 181, 0.1); border-top: 3px solid var(--aqua); border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; margin: 2rem auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* CHAT */
-.chat-container { height: calc(100vh - 150px); display: flex; flex-direction: column; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-.chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
-.chat-input { flex: 1; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2rem; outline: none; }
-.chat-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; }
+/* CHAT WORKSPACE */
+.heali-workspace { display: flex; height: 100vh; width: 100%; background: var(--bg); overflow: hidden; }
+.heali-sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; transition: transform 0.3s ease; }
+.heali-sidebar-header { padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.chat-search-wrapper { position: relative; display: flex; align-items: center; background: var(--bg); border-radius: var(--radius-md); border: 1px solid var(--border); }
+.chat-search-input { width: 100%; padding: 0.6rem 0.6rem 0.6rem 2.25rem; border: none; outline: none; background: transparent; font-size: 0.9rem; }
+.chat-search-wrapper i { position: absolute; left: 0.75rem; font-size: 0.9rem; pointer-events: none; }
+.chat-history-list { flex: 1; overflow-y: auto; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.chat-group-title { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; padding: 1rem 0.75rem 0.25rem 0.75rem; }
+.chat-history-item { padding: 0.75rem; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-size: 0.9rem; transition: background 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-history-item:hover { background: var(--bg); }
+.chat-history-item.active { background: var(--mint-soft); color: var(--navy); font-weight: 500; }
+.chat-history-item i { color: var(--text-secondary); font-size: 0.9rem; }
+.chat-history-item.active i { color: var(--aqua); }
 
-.message { max-width: 80%; display: flex; gap: 0.75rem; }
-.message.user { align-self: flex-end; flex-direction: row-reverse; }
-.message.agent { align-self: flex-start; }
-.msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0; }
-.message.user .msg-avatar { background: var(--navy); }
-.message.agent .msg-avatar { background: var(--teal); }
-.msg-bubble { padding: 0.85rem 1.25rem; border-radius: 1rem; font-size: 0.95rem; line-height: 1.5; }
-.message.user .msg-bubble { background: var(--navy); color: white; border-top-right-radius: 0; }
-.message.agent .msg-bubble { background: var(--bg); color: var(--text-primary); border: 1px solid var(--border); border-top-left-radius: 0; }
+.heali-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg); }
+.mobile-sidebar-toggle { display: none; }
+
+@media (max-width: 768px) {
+  .heali-sidebar { position: fixed; left: 0; top: 0; height: 100%; transform: translateX(-100%); box-shadow: var(--shadow-md); }
+  .heali-sidebar.open { transform: translateX(0); }
+  .mobile-sidebar-toggle { display: block; margin-right: 1rem; }
+  .mobile-only { display: block !important; }
+}
+.mobile-only { display: none; }
+
+.chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--card); z-index: 10; box-shadow: var(--shadow-sm); }
+.chat-header-info { display: flex; align-items: center; gap: 0.75rem; }
+.chat-header-titles h3 { font-size: 1.1rem; color: var(--navy); margin: 0; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.chat-header-titles p { font-size: 0.8rem; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 0.35rem; margin-top: 0.1rem; }
+
+.chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; scroll-behavior: smooth; }
+.chat-input-area { padding: 1rem 1.5rem; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 0.75rem; align-items: center; justify-content: center; }
+.chat-input-wrapper { max-width: 800px; width: 100%; position: relative; display: flex; align-items: center; background: var(--bg); border-radius: 2rem; border: 1px solid var(--border); transition: border-color 0.2s, box-shadow 0.2s; padding: 0.25rem; }
+.chat-input-wrapper:focus-within { border-color: var(--aqua); box-shadow: 0 0 0 3px rgba(32, 199, 181, 0.15); background: var(--card); }
+.chat-input { width: 100%; padding: 0.75rem 3rem 0.75rem 1.25rem; border: none; outline: none; font-size: 0.95rem; background: transparent; color: var(--text-primary); resize: none; max-height: 150px; overflow-y: auto; }
+.chat-mic-btn { position: absolute; right: 0.25rem; background: transparent; color: var(--text-secondary); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.chat-mic-btn:hover { color: var(--navy); background: var(--border); }
+.chat-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--aqua); color: var(--navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem; transition: all 0.2s; border: none; box-shadow: var(--shadow-sm); }
+.chat-btn:disabled { background: var(--border); color: var(--text-secondary); cursor: not-allowed; box-shadow: none; }
+.chat-btn:not(:disabled):hover { background: var(--aqua-bright); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.message-wrapper { display: flex; flex-direction: column; max-width: 85%; }
+.message-wrapper.user { align-self: flex-end; align-items: flex-end; }
+.message-wrapper.agent { align-self: flex-start; align-items: flex-start; }
+.message { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.25rem; }
+.message.user { flex-direction: row-reverse; }
+.msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 0.2rem; }
+.message.user .msg-avatar { background: var(--navy); color: var(--card); font-size: 0.8rem; }
+.message.agent .msg-avatar img { width: 32px; height: 32px; border-radius: 50%; }
+.msg-content { display: flex; flex-direction: column; }
+.msg-name { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; font-weight: 600; padding: 0 0.5rem; }
+.message.user .msg-name { text-align: right; }
+.msg-bubble { padding: 0.85rem 1.25rem; border-radius: 1.25rem; font-size: 0.95rem; line-height: 1.5; }
+.message.user .msg-bubble { background: var(--navy); color: var(--card); border-top-right-radius: 0.25rem; box-shadow: var(--shadow-sm); }
+.message.agent .msg-bubble { background: var(--card); color: var(--text-primary); border: 1px solid var(--border); border-top-left-radius: 0.25rem; box-shadow: var(--shadow-sm); }
+.msg-timestamp { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.15rem; padding: 0 0.5rem; }
+
+.typing-indicator { display: flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.25rem; }
+.typing-dot { width: 6px; height: 6px; background-color: var(--text-secondary); border-radius: 50%; animation: typing 1.4s infinite ease-in-out; opacity: 0.5; }
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+.welcome-state { text-align: center; padding: 3rem 1rem; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; margin: auto 0; }
+.welcome-logo { width: 72px; height: 72px; margin-bottom: 1.5rem; }
+.welcome-title { font-size: 1.5rem; color: var(--navy); font-weight: 700; margin-bottom: 0.5rem; }
+.welcome-subtitle { font-size: 1rem; margin-bottom: 2rem; max-width: 400px; line-height: 1.5; color: var(--text-secondary); }
+.quick-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; max-width: 500px; }
+.quick-action-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: left; font-size: 0.9rem; color: var(--navy); font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 0.75rem; }
+.quick-action-btn:hover { border-color: var(--aqua); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.contextual-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 0.75rem; box-shadow: var(--shadow-md); border-top: 4px solid var(--aqua); width: 100%; min-width: 280px; max-width: 320px; }
+.contextual-header { font-size: 0.75rem; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+.contextual-title { font-size: 1.05rem; color: var(--navy); font-weight: 700; margin-bottom: 0.5rem; }
+.contextual-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4; }
+.contextual-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+
+.chat-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+.chat-chip { background: var(--card); border: 1px solid var(--border); border-radius: 2rem; padding: 0.4rem 1rem; font-size: 0.85rem; color: var(--navy); cursor: pointer; transition: all 0.2s; font-weight: 500; }
+.chat-chip:hover { border-color: var(--aqua); background: var(--mint-soft); color: var(--navy-deep); }
+
+/* RICH CARDS FOR CHAT */
+.rich-cards-container { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; width: 100%; max-width: 380px; }
+.rich-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; box-shadow: var(--shadow-sm); }
+.rich-card-title { font-weight: 700; color: var(--navy); font-size: 1rem; margin-bottom: 0.25rem; }
+.rich-card-subtitle { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.rich-card-actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; }
 
 /* MODALS */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 39, 71, 0.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
-.modal-overlay.active { display: flex; }
-.modal-content { background: var(--card); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.modal-header h3 { font-size: 1.25rem; color: var(--navy); margin: 0; }
-.modal-close { background: none; border: none; font-size: 1.25rem; color: var(--text-secondary); cursor: pointer; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 28, 44, 0.6); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; backdrop-filter: blur(2px); }
+.modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+.modal-content { background: var(--card); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); border: 1px solid var(--border); }
+.modal-header { display: flex; align-items: center; justify-content: flex-start; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+.modal-header h3 { font-size: 1.25rem; color: var(--navy); margin: 0; font-weight: 700; }
+.modal-close { background: transparent; color: var(--text-secondary); font-size: 1.5rem; border: none; cursor: pointer; transition: color 0.2s; }
+.modal-close:hover { color: var(--danger); }
+
+/* DAY SCHEDULE CARDS */
+.day-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem; transition: opacity 0.2s; background: var(--card); box-shadow: var(--shadow-sm); }
+.day-card.unavailable { opacity: 0.6; background: var(--bg); border-style: dashed; box-shadow: none; }
+.day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-weight: 600; color: var(--navy); }
+.day-toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; user-select: none; }
+.day-toggle input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--aqua); cursor: pointer; }
+.shift-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.5rem; }
+.shift-row .form-input { width: 130px; font-weight: 500; }
+.btn-remove { background: transparent; color: var(--danger); font-size: 0.85rem; padding: 0.5rem; cursor: pointer; border-radius: var(--radius-md); transition: background 0.2s; border: 1px solid transparent; }
+.btn-remove:hover { background: #fef2f2; border-color: #fecaca; }
+.btn-add-shift { background: transparent; color: var(--aqua); font-size: 0.85rem; font-weight: 600; padding: 0.5rem; margin-top: 0.25rem; display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; border-radius: var(--radius-md); transition: background 0.2s; border: 1px solid transparent; }
+.btn-add-shift:hover { background: var(--mint-soft); border-color: var(--aqua); }
 </style>
 </head>
 <body>
@@ -157,7 +251,7 @@ input, select { font-family: inherit; }
         <label>Password</label>
         <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
       </div>
-      <button class="btn-primary" onclick="doLogin()">Sign In</button>
+      <button type="button" class="btn-primary" onclick="doLogin()">Sign In</button>
       <div class="auth-switch">
         Don't have an account? <br><br>
         <a onclick="showAuth('registerPatient')">Register as Patient</a> &nbsp;|&nbsp; <a onclick="showAuth('registerDoctor')">Register as Doctor</a>
@@ -196,12 +290,12 @@ input, select { font-family: inherit; }
         <div style="flex: 1;"><label>Pincode</label><input type="text" id="rpPincode" class="form-input" placeholder="123456"></div>
       </div>
       <div class="form-group">
-        <button class="btn-outline" onclick="getLocation()"><i class="fa-solid fa-location-dot"></i> Use my current location</button>
+        <button type="button" class="btn-outline" onclick="getLocation()"><i class="fa-solid fa-location-dot"></i> Use my current location</button>
         <input type="hidden" id="rpLat">
         <input type="hidden" id="rpLon">
         <small id="rpLocStatus" style="color:var(--text-secondary); display:block; text-align:center; margin-top:0.25rem;"></small>
       </div>
-      <button class="btn-primary" onclick="doRegisterPatient()">Create Account</button>
+      <button type="button" class="btn-primary" onclick="doRegisterPatient()">Create Account</button>
       <div class="auth-switch">Already have an account? <a onclick="showAuth('login')">Sign In</a></div>
     </div>
   </div>
@@ -249,7 +343,7 @@ input, select { font-family: inherit; }
         <label>Doctor ID (Verification)</label>
         <input type="number" id="rdDocId" class="form-input" placeholder="12345">
       </div>
-      <button class="btn-primary" onclick="doRegisterDoctor()">Register as Provider</button>
+      <button type="button" class="btn-primary" onclick="doRegisterDoctor()">Register as Provider</button>
       <div class="auth-switch">Already have an account? <a onclick="showAuth('login')">Sign In</a></div>
     </div>
   </div>
@@ -264,7 +358,7 @@ input, select { font-family: inherit; }
       <div class="greeting-title" id="greetingName">Welcome, User</div>
       <div class="actions-area">
         <div class="dropdown">
-          <button class="icon-btn" onclick="toggleDropdown('notifMenu')">
+          <button type="button" class="icon-btn" onclick="toggleDropdown('notifMenu')">
             <i class="fa-regular fa-bell"></i>
             <span class="badge hidden" id="notifBadge">1</span>
           </button>
@@ -276,7 +370,7 @@ input, select { font-family: inherit; }
           </div>
         </div>
         <div class="dropdown">
-          <button class="icon-btn" onclick="toggleDropdown('profileMenu')">
+          <button type="button" class="icon-btn" onclick="toggleDropdown('profileMenu')">
             <i class="fa-solid fa-user"></i>
           </button>
           <div class="dropdown-menu" id="profileMenu">
@@ -315,12 +409,12 @@ input, select { font-family: inherit; }
               <img src="/static/assets/heali-logo.svg" alt="Heali" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Heali</h3>
               <p class="action-desc">Your AI Healthcare Companion</p>
-              <button class="btn-primary" onclick="openHeali()">Talk to Heali</button>
+              <button type="button" class="btn-primary" onclick="openHeali()">Talk to Heali</button>
             </div>
             <div class="action-card">
               <img src="/static/assets/calendar-booking.svg" alt="Book Manually" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Book Manually</h3>
-              <button class="btn-outline" onclick="openManualBooking()">Book Appointment</button>
+              <button type="button" class="btn-outline" onclick="openManualBooking()">Book Appointment</button>
             </div>
           </div>
         </div>
@@ -344,29 +438,44 @@ input, select { font-family: inherit; }
               <img src="/static/assets/heali-logo.svg" alt="Heali" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Heali</h3>
               <p class="action-desc">Your AI Healthcare Companion</p>
-              <button class="btn-primary" onclick="openHeali()">Talk to Heali</button>
+              <button type="button" class="btn-primary" onclick="openHeali()">Talk to Heali</button>
             </div>
             <div class="action-card">
               <img src="/static/assets/calendar-booking.svg" alt="Manage Schedule" width="60" height="60" style="margin-bottom: 1rem;">
               <h3 class="action-title">Manage Schedule</h3>
-              <button class="btn-outline" onclick="openManageSchedule()">Manage Schedule</button>
+              <button type="button" class="btn-outline" onclick="openManageSchedule()">Manage Schedule</button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- HEALI CHAT VIEW -->
-      <div id="chatView" class="view-section">
-        <button class="btn-outline" style="width:auto; margin-bottom:1rem; padding:0.5rem 1rem;" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-        <div class="chat-container">
-          <div style="padding:1rem; border-bottom:1px solid var(--border); font-weight:600; display:flex; gap:0.5rem; align-items:center;">
-             <img src="/static/assets/heali-logo.svg" alt="Heali" width="24" height="24"> Heali
+      <div id="chatView" class="view-section" style="height: 100%;">
+        <div style="height: 100%; display: flex; flex-direction: column;">
+          <div class="chat-container">
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <button type="button" class="icon-btn" onclick="goHome()" style="margin-right: 0.5rem;"><i class="fa-solid fa-arrow-left"></i></button>
+              <img src="/static/assets/heali-logo.svg" alt="Heali" width="36" height="36">
+              <div class="chat-header-titles">
+                <h3>Heali</h3>
+                <p><span class="online-dot"></span> Online &bull; AI Healthcare Assistant</p>
+              </div>
+            </div>
           </div>
-          <div class="chat-messages" id="messages"></div>
+          
+          <div class="chat-messages" id="messages">
+            <!-- Messages will be injected here -->
+          </div>
+          
           <div class="chat-input-area">
-            <input type="text" id="userInput" class="chat-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()">
-            <button class="chat-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            <div class="chat-input-wrapper">
+              <input type="text" id="userInput" class="chat-input" placeholder="Message Heali..." onkeydown="if(event.key==='Enter') sendMessage()" oninput="updateSendBtn()">
+              <button type="button" class="chat-mic-btn" title="Voice Input" onclick="alert('Voice input active (mock)')"><i class="fa-solid fa-microphone"></i></button>
+            </div>
+            <button type="button" id="sendBtn" class="chat-btn" onclick="sendMessage()" disabled><i class="fa-solid fa-paper-plane"></i></button>
           </div>
+        </div>
         </div>
       </div>
     </main>
@@ -376,8 +485,8 @@ input, select { font-family: inherit; }
   <div class="modal-overlay" id="manualBookModal">
     <div class="modal-content">
       <div class="modal-header">
+        <button type="button" class="icon-btn" onclick="closeModal('manualBookModal')"><i class="fa-solid fa-arrow-left"></i></button>
         <h3>Book Appointment</h3>
-        <button class="modal-close" onclick="closeModal('manualBookModal')">&times;</button>
       </div>
       <div class="alert" id="mbAlert"></div>
       
@@ -394,7 +503,7 @@ input, select { font-family: inherit; }
           <label>Date</label>
           <input type="date" id="mbDate" class="form-input">
         </div>
-        <button class="btn-primary" onclick="checkSlots()">Check Availability</button>
+        <button type="button" class="btn-primary" onclick="checkSlots()">Check Availability</button>
       </div>
 
       <div id="mbStep2" class="hidden">
@@ -403,54 +512,38 @@ input, select { font-family: inherit; }
           <select id="mbTime" class="form-input"></select>
         </div>
         <div style="display:flex; gap:1rem;">
-          <button class="btn-outline" onclick="document.getElementById('mbStep2').classList.add('hidden'); document.getElementById('mbStep1').classList.remove('hidden');">Back</button>
-          <button class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
+          <button type="button" class="btn-outline" onclick="document.getElementById('mbStep2').classList.add('hidden'); document.getElementById('mbStep1').classList.remove('hidden');">Back</button>
+          <button type="button" class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="modal-overlay" id="manageScheduleModal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 550px;">
       <div class="modal-header">
+        <button type="button" class="icon-btn" onclick="closeModal('manageScheduleModal')"><i class="fa-solid fa-arrow-left"></i></button>
         <h3>Manage Schedule</h3>
-        <button class="modal-close" onclick="closeModal('manageScheduleModal')">&times;</button>
       </div>
       <div class="alert" id="msAlert"></div>
-      <div class="form-group">
-        <label>Working Days</label>
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-          <label><input type="checkbox" class="day-cb" value="0"> Mon</label>
-          <label><input type="checkbox" class="day-cb" value="1"> Tue</label>
-          <label><input type="checkbox" class="day-cb" value="2"> Wed</label>
-          <label><input type="checkbox" class="day-cb" value="3"> Thu</label>
-          <label><input type="checkbox" class="day-cb" value="4"> Fri</label>
-          <label><input type="checkbox" class="day-cb" value="5"> Sat</label>
-          <label><input type="checkbox" class="day-cb" value="6"> Sun</label>
-        </div>
-      </div>
-      <p style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Morning Shift</p>
-      <div style="display:flex; gap:1rem; margin-bottom:1rem;">
-        <div style="flex:1"><input type="time" id="availMornStart" class="form-input"></div>
-        <div style="flex:1"><input type="time" id="availMornEnd" class="form-input"></div>
-      </div>
-      <p style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Afternoon Shift</p>
-      <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
-        <div style="flex:1"><input type="time" id="availAftStart" class="form-input"></div>
-        <div style="flex:1"><input type="time" id="availAftEnd" class="form-input"></div>
+      
+      <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Set your weekly availability.</p>
+      
+      <div id="weeklyScheduleEditor">
+        <!-- Rendered by JS -->
       </div>
 
       <div style="margin-bottom: 1.5rem;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
           <p style="font-weight:600; font-size:0.9rem; margin:0;">Availability Exceptions</p>
-          <button class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.8rem; width:auto;" onclick="openAddExceptionModal()">+ Add Unavailable Date</button>
+          <button type="button" class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.8rem; width:auto;" onclick="openAddExceptionModal()">+ Add Unavailable Date</button>
         </div>
         <div id="exceptionsList" style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem; max-height: 150px; overflow-y: auto;">
            <!-- list goes here -->
         </div>
       </div>
 
-      <button class="btn-primary" onclick="saveDoctorAvailability()">Save Schedule</button>
+      <button type="button" class="btn-primary" onclick="saveDoctorAvailability()">Save Schedule</button>
     </div>
   </div>
 
@@ -458,8 +551,8 @@ input, select { font-family: inherit; }
   <div class="modal-overlay" id="addExceptionModal">
     <div class="modal-content" style="max-width: 400px; z-index: 2000;">
       <div class="modal-header">
+        <button type="button" class="icon-btn" onclick="closeModal('addExceptionModal')"><i class="fa-solid fa-arrow-left"></i></button>
         <h3>Mark Unavailable</h3>
-        <button class="modal-close" onclick="closeModal('addExceptionModal')">&times;</button>
       </div>
       <div class="alert" id="excAlert"></div>
       <div class="form-group">
@@ -471,8 +564,8 @@ input, select { font-family: inherit; }
         <input type="text" id="excReason" class="form-input" placeholder="e.g. Personal leave">
       </div>
       <div style="display:flex; gap:1rem; margin-top: 1rem;">
-        <button class="btn-outline" onclick="closeModal('addExceptionModal')">Cancel</button>
-        <button class="btn-primary" onclick="saveException()">Mark Unavailable</button>
+        <button type="button" class="btn-outline" onclick="closeModal('addExceptionModal')">Cancel</button>
+        <button type="button" class="btn-primary" onclick="saveException()">Mark Unavailable</button>
       </div>
     </div>
   </div>
@@ -480,8 +573,8 @@ input, select { font-family: inherit; }
   <div class="modal-overlay" id="profileModal">
     <div class="modal-content">
       <div class="modal-header">
+        <button type="button" class="icon-btn" onclick="closeModal('profileModal')"><i class="fa-solid fa-arrow-left"></i></button>
         <h3>Profile</h3>
-        <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
       </div>
       <div id="profileContent">Loading...</div>
     </div>
@@ -490,15 +583,15 @@ input, select { font-family: inherit; }
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-content">
       <div class="modal-header">
+        <button type="button" class="icon-btn" onclick="closeModal('settingsModal')"><i class="fa-solid fa-arrow-left"></i></button>
         <h3>Settings</h3>
-        <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
       </div>
       <div class="form-group">
         <label>Notification Preferences</label>
         <label style="display:flex; gap:0.5rem; margin-top:0.5rem;"><input type="checkbox" checked> Email notifications for appointments</label>
         <label style="display:flex; gap:0.5rem; margin-top:0.5rem;"><input type="checkbox" checked> In-app reminders</label>
       </div>
-      <button class="btn-primary" onclick="closeModal('settingsModal')">Save Settings</button>
+      <button type="button" class="btn-primary" onclick="closeModal('settingsModal')">Save Settings</button>
     </div>
   </div>
 
@@ -511,6 +604,7 @@ let allDoctors = [];
 let isRefreshing = false;
 let refreshPromise = null;
 async function apiFetch(url, options = {}) {
+  options.credentials = 'include';
   let res = await fetch(url, options);
   if (res.status === 401 && !url.includes('/api/login') && !url.includes('/api/refresh') && !url.includes('/api/logout') && !url.includes('/api/register')) {
     if (!isRefreshing) {
@@ -578,16 +672,7 @@ function showApp() {
   goHome();
 }
 
-function goHome() {
-  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-  if (userRole === 'doctor') {
-    document.getElementById('doctorPortal').classList.add('active');
-    loadDoctorAppointments();
-  } else {
-    document.getElementById('patientPortal').classList.add('active');
-    loadPatientAppointments();
-  }
-}
+// goHome deleted
 
 // DROPDOWNS & MODALS
 function toggleDropdown(id) {
@@ -601,9 +686,16 @@ window.onclick = function(e) {
     document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
   }
 }
-function openModal(id) { document.getElementById(id).classList.add('active'); }
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
+function openModal(id) { 
+  console.log('Opening modal:', id);
+  const el = document.getElementById(id);
+  if(el) { el.style.display = ''; el.classList.add('active'); }
+}
+function closeModal(id) { 
+  console.log('Closing modal:', id);
+  const el = document.getElementById(id);
+  if(el) { el.classList.remove('active'); el.style.display = 'none'; }
+}
 // AUTH APIs
 function showAlert(id, msg, type="error") {
   const el = document.getElementById(id); el.textContent = msg; el.className = `alert ${type}`; el.style.display = 'block';
@@ -625,8 +717,193 @@ async function doLogin() {
 async function doLogout() {
   try { await apiFetch('/api/logout', { method: 'POST' }); } catch (e) {}
   token = null; userName = ''; userRole = '';
+  currentChatSessionId = null;
   document.getElementById('loginEmail').value = ''; document.getElementById('loginPassword').value = '';
+  document.getElementById('messages').innerHTML = '';
   showAuth('login');
+}
+
+let currentChatSessionId = null;
+let allSessions = [];
+
+function toggleSidebar() {
+  document.getElementById('healiSidebar').classList.toggle('open');
+}
+
+function openHeali() {
+  document.querySelectorAll('.view-section').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  const cv = document.getElementById('chatView');
+  cv.style.display = 'block';
+  cv.classList.add('active');
+  document.getElementById('appShell').style.padding = '0';
+  document.querySelector('.topbar').classList.add('hidden');
+  document.querySelector('.main-container').style.padding = '0';
+  
+  if (!currentChatSessionId) {
+    loadChatHistory(true);
+  }
+  
+  const msgs = document.getElementById('messages');
+  if(msgs && msgs.innerHTML.trim() === '') {
+     renderWelcomeState();
+  }
+  updateSendBtn();
+}
+
+function goHome() {
+  console.log('goHome called. userRole:', userRole);
+  document.querySelectorAll('.view-section').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  document.getElementById('appShell').style.padding = '';
+  document.querySelector('.topbar').classList.remove('hidden');
+  document.querySelector('.main-container').style.padding = '2rem';
+  
+  if (userRole === 'doctor') {
+    const dp = document.getElementById('doctorPortal');
+    dp.style.display = 'block';
+    dp.classList.add('active');
+    loadDoctorAppointments();
+  } else {
+    const pp = document.getElementById('patientPortal');
+    pp.style.display = 'block';
+    pp.classList.add('active');
+    loadPatientAppointments();
+  }
+}
+
+async function startNewChat() {
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '<div class="spinner"></div>';
+  
+  try {
+    const res = await apiFetch('/api/chat/sessions', { method: 'POST', headers: {'Authorization': 'Bearer ' + token} });
+    const session = await res.json();
+    currentChatSessionId = session.id;
+    document.getElementById('currentChatTitle').textContent = 'New Chat';
+    msgs.innerHTML = '';
+    renderWelcomeState();
+    await loadChatHistory(false); // Refresh sidebar
+  } catch(e) {
+    showAlert('loginAlert', 'Error creating chat session');
+  }
+}
+
+async function loadChatHistory(init = false) {
+  try {
+    const res = await apiFetch('/api/chat/sessions', { headers: {'Authorization': 'Bearer ' + token} });
+    allSessions = await res.json();
+    
+    renderSidebar(allSessions);
+    
+    if (init) {
+      if (allSessions && allSessions.length > 0) {
+        selectChat(allSessions[0].id, allSessions[0].title);
+      } else {
+        await startNewChat();
+      }
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderSidebar(sessions) {
+  const list = document.getElementById('chatHistoryList');
+  list.innerHTML = '';
+  
+  if (sessions.length === 0) {
+    return;
+  }
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const groups = {
+    'Today': [],
+    'Yesterday': [],
+    'Previous 7 days': [],
+    'Older': []
+  };
+
+  sessions.forEach(s => {
+    const d = new Date(s.created_at);
+    if (d.toDateString() === today.toDateString()) groups['Today'].push(s);
+    else if (d.toDateString() === yesterday.toDateString()) groups['Yesterday'].push(s);
+    else if (d > sevenDaysAgo) groups['Previous 7 days'].push(s);
+    else groups['Older'].push(s);
+  });
+
+  for (const [groupName, groupSessions] of Object.entries(groups)) {
+    if (groupSessions.length > 0) {
+      list.insertAdjacentHTML('beforeend', `<div class="chat-group-title">${groupName}</div>`);
+      groupSessions.forEach(s => {
+        const isActive = s.id === currentChatSessionId ? 'active' : '';
+        list.insertAdjacentHTML('beforeend', `
+          <div class="chat-history-item ${isActive}" onclick="selectChat(${s.id}, '${s.title.replace(/'/g, "\\'")}')">
+            <i class="fa-regular fa-message"></i> ${s.title || 'Chat'}
+          </div>
+        `);
+      });
+    }
+  }
+}
+
+function filterChats() {
+  const query = document.getElementById('chatSearch').value.toLowerCase();
+  const filtered = allSessions.filter(s => (s.title || 'Chat').toLowerCase().includes(query));
+  renderSidebar(filtered);
+}
+
+async function selectChat(sessionId, title) {
+  currentChatSessionId = sessionId;
+  document.getElementById('currentChatTitle').textContent = title || 'Heali';
+  renderSidebar(allSessions); // update active class
+  
+  if (window.innerWidth <= 768) {
+    toggleSidebar(); // close drawer
+  }
+  
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '<div class="spinner"></div>';
+  
+  try {
+    const msgRes = await apiFetch(`/api/chat/sessions/${currentChatSessionId}`, { headers: {'Authorization': 'Bearer ' + token} });
+    const msgData = await msgRes.json();
+    msgs.innerHTML = '';
+    
+    if (!msgData.messages || msgData.messages.length === 0) {
+       renderWelcomeState();
+    } else {
+       msgData.messages.forEach(m => {
+          if (m.role === 'user') {
+             appendUserMessage(m.content);
+          } else {
+             let replyText = m.content;
+             let richData = null;
+             if(typeof replyText === 'string' && replyText.startsWith('{')) {
+                try { 
+                  let j = JSON.parse(replyText); 
+                  replyText = j.message || replyText; 
+                  richData = j;
+                } catch(e){}
+             }
+             appendAgentMessage(replyText, false, richData);
+          }
+       });
+    }
+  } catch (e) {
+    msgs.innerHTML = '';
+    renderWelcomeState();
+  }
+  scrollToBottom();
 }
 
 // REGISTRATION
@@ -717,7 +994,7 @@ async function loadPatientAppointments() {
     const res = await apiFetch('/api/appointments/upcoming', { headers: {'Authorization': 'Bearer ' + token} });
     const appts = await res.json();
     if (appts.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No upcoming appointments<br><br><button class="btn-outline" style="width:auto" onclick="openManualBooking()">Book an Appointment</button></div>';
+      container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No upcoming appointments<br><br><button type="button" class="btn-outline" style="width:auto" onclick="openManualBooking()">Book an Appointment</button></div>';
     } else {
       container.innerHTML = appts.map(a => `
         <div class="appt-item">
@@ -802,30 +1079,281 @@ async function openProfile() {
 function openSettings() { openModal('settingsModal'); }
 
 // HEALI
-function openHeali() {
-  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-  document.getElementById('chatView').classList.add('active');
-  const msgs = document.getElementById('messages');
-  if(msgs.innerHTML === '') {
-     msgs.innerHTML = `<div class="message agent"><div class="msg-avatar" style="background:transparent;"><img src="/static/assets/heali-logo.svg" alt="Heali" width="32" height="32"></div><div class="msg-bubble">Hello! I'm Heali. How can I assist you today?</div></div>`;
-  }
+
+
+function updateSendBtn() {
+  const inp = document.getElementById('userInput');
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = inp.value.trim().length === 0;
 }
+
+function sendQuickAction(text) {
+  document.getElementById('userInput').value = text;
+  updateSendBtn();
+  sendMessage();
+}
+
+function renderWelcomeState() {
+  const msgs = document.getElementById('messages');
+  const greeting = "Good " + (new Date().getHours() < 12 ? "morning" : "afternoon") + ", " + (userRole === 'doctor' ? formatDocName(userName) : userName);
+  
+  let actionsHtml = '';
+  if (userRole === 'doctor') {
+    actionsHtml = `
+      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Manage my schedule')"><i class="fa-regular fa-calendar" style="color:var(--aqua)"></i> Manage schedule</button>
+      <button type="button" class="quick-action-btn" onclick="sendQuickAction('View today\\'s appointments')"><i class="fa-solid fa-users" style="color:var(--aqua)"></i> Today's appointments</button>
+      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Update my availability for tomorrow')"><i class="fa-solid fa-clock" style="color:var(--aqua)"></i> Update availability</button>
+      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Help me with appointments')"><i class="fa-solid fa-circle-info" style="color:var(--aqua)"></i> Get help</button>
+    `;
+  } else {
+    actionsHtml = `
+      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Book an appointment')"><i class="fa-regular fa-calendar-plus" style="color:var(--aqua)"></i> Book appointment</button>
+      <button type="button" class="quick-action-btn" onclick="sendQuickAction('View my upcoming appointments')"><i class="fa-regular fa-calendar-check" style="color:var(--aqua)"></i> Upcoming appointments</button>
+    `;
+  }
+
+  msgs.innerHTML = `
+    <div class="welcome-state" id="welcomeState">
+      <img src="/static/assets/heali-logo.svg" alt="Heali" class="welcome-logo">
+      <h2 class="welcome-title">${greeting}</h2>
+      <p class="welcome-subtitle">I'm Heali, your AI healthcare assistant. How can I help you today?</p>
+      <div class="quick-actions-grid">
+        ${actionsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+}
+
+function appendUserMessage(text) {
+  const msgs = document.getElementById('messages');
+  const ws = document.getElementById('welcomeState');
+  if (ws) ws.remove();
+
+  const html = `
+    <div class="message-wrapper user">
+      <div class="message user">
+        <div class="msg-avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="msg-bubble">${text}</div>
+      </div>
+      <div class="msg-timestamp">${formatTime(new Date())}</div>
+    </div>
+  `;
+  msgs.insertAdjacentHTML('beforeend', html);
+  scrollToBottom();
+}
+
+function appendAgentMessage(text, isContextual = false, richData = null) {
+  const msgs = document.getElementById('messages');
+  const ws = document.getElementById('welcomeState');
+  if (ws) ws.remove();
+
+  let cardsHtml = '';
+  if (richData && richData.response_type && richData.data && richData.data.length > 0) {
+    cardsHtml = renderRichCards(richData);
+  }
+
+  const html = `
+    <div class="message-wrapper agent">
+      <div class="message agent">
+        <div class="msg-avatar"><img src="/static/assets/heali-logo.svg" alt="Heali" width="20" height="20"></div>
+        <div class="msg-content">
+          <div class="msg-name">Heali</div>
+          <div class="msg-bubble">${text}</div>
+          ${cardsHtml}
+        </div>
+      </div>
+      <div class="msg-timestamp">${formatTime(new Date())}</div>
+      ${isContextual && userRole === 'doctor' ? renderContextualScheduleCard() : ''}
+      ${!isContextual && userRole === 'doctor' ? renderContextualChips() : ''}
+    </div>
+  `;
+  msgs.insertAdjacentHTML('beforeend', html);
+  scrollToBottom();
+}
+
+function renderRichCards(richData) {
+  const type = richData.response_type;
+  const items = richData.data;
+  let html = '<div class="rich-cards-container">';
+  
+  items.forEach(item => {
+    let title = '';
+    let subtitle = '';
+    let actionsHtml = '';
+    
+    if (type === 'doctor_list') {
+      title = formatDocName(item.name || item.doctor_name || item.doctor, item.doctor_id);
+      subtitle = `<i class="fa-solid fa-stethoscope"></i> ${item.specialty || 'General'}<br><i class="fa-solid fa-hospital"></i> ${item.hospital_name || ''}`;
+      if (item.distance_km) subtitle += ` (${item.distance_km} km)`;
+      
+      actionsHtml = `
+        <button type="button" class="btn-outline btn-sm" onclick="sendQuickAction('Check slots for doctor ${item.doctor_id} tomorrow')">Check Slots</button>
+      `;
+    } else if (type === 'hospital_list') {
+      title = item.name || item.hospital_name;
+      subtitle = `<i class="fa-solid fa-location-dot"></i> ${item.address || ''}`;
+      if (item.distance_km) subtitle += ` (${item.distance_km} km)`;
+      
+      actionsHtml = `
+        <button type="button" class="btn-outline btn-sm" onclick="sendQuickAction('Find doctors at ${title}')">View Doctors</button>
+      `;
+    } else if (type === 'appointment_list') {
+      title = `Appointment with ${formatDocName(item.doctor_name || item.doctor || item.name, item.doctor_id)}`;
+      subtitle = `<i class="fa-regular fa-calendar"></i> ${formatApptDate(item.slot_datetime)}<br><span class="status-badge status-${item.status}">${item.status}</span>`;
+      
+      if (item.status === 'scheduled') {
+        actionsHtml = `
+          <button type="button" class="btn-outline btn-sm text-danger" onclick="sendQuickAction('Cancel appointment ${item.appointment_id}')">Cancel</button>
+        `;
+      }
+    } else {
+      // Fallback
+      title = item.name || "Item";
+      subtitle = JSON.stringify(item);
+    }
+    
+    html += `
+      <div class="rich-card">
+        <div class="rich-card-title">${title}</div>
+        <div class="rich-card-subtitle">${subtitle}</div>
+        ${actionsHtml ? `<div class="rich-card-actions">${actionsHtml}</div>` : ''}
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  return html;
+}
+
+function renderContextualScheduleCard() {
+  return `
+    <div class="contextual-card">
+      <div class="contextual-header"><i class="fa-solid fa-bolt"></i> Schedule Update Required</div>
+      <div class="contextual-title">Update Your Availability</div>
+      <div class="contextual-desc">Use your authenticated doctor profile to manage your schedule directly.</div>
+      <div class="contextual-actions">
+        <button type="button" class="btn-primary btn-sm" onclick="openManageSchedule()"><i class="fa-solid fa-calendar-check"></i> Manage Schedule</button>
+        <button type="button" class="btn-outline btn-sm" onclick="sendQuickAction('I updated my schedule')">Done</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderContextualChips() {
+  return `
+    <div class="chat-chips">
+      <button type="button" class="chat-chip" onclick="sendQuickAction('Manage schedule')">Manage schedule</button>
+      <button type="button" class="chat-chip" onclick="sendQuickAction('View appointments')">View appointments</button>
+    </div>
+  `;
+}
+
+function showTypingIndicator() {
+  const msgs = document.getElementById('messages');
+  const id = 'typing-' + Date.now();
+  const html = `
+    <div class="message-wrapper agent" id="${id}">
+      <div class="message agent">
+        <div class="msg-avatar"><img src="/static/assets/heali-logo.svg" alt="Heali" width="20" height="20"></div>
+        <div class="msg-bubble" style="padding: 0.6rem 1rem;">
+          <div class="typing-indicator">
+            <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  msgs.insertAdjacentHTML('beforeend', html);
+  scrollToBottom();
+  return id;
+}
+
+function removeTypingIndicator(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function scrollToBottom() {
+  const msgs = document.querySelector('.chat-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
 async function sendMessage() {
   const inp = document.getElementById('userInput');
-  const text = inp.value.trim(); if(!text) return;
+  const text = inp.value.trim(); 
+  if(!text) return;
   inp.value = '';
-  document.getElementById('messages').innerHTML += `<div class="message user"><div class="msg-avatar"><i class="fa-solid fa-user"></i></div><div class="msg-bubble">${text}</div></div>`;
+  updateSendBtn();
   
-  try {
-    const res = await apiFetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({message: text}) });
-    const data = await res.json();
-    let reply = data.reply || '';
-    if(typeof reply === 'string' && reply.startsWith('{')) {
-        try { let j = JSON.parse(reply); reply = j.message || reply; } catch(e){}
+  appendUserMessage(text);
+  const typingId = showTypingIndicator();
+  
+  const lowerText = text.toLowerCase();
+  const locationKeywords = ["nearby", "near me", "nearby doctor", "nearby doctors", "nearby hospital", "nearby hospitals", "closest doctor", "closest doctors", "closest hospital", "closest hospitals", "around me", "near my location", "nearest doctor", "nearest hospital"];
+  const requiresLocation = locationKeywords.some(kw => lowerText.includes(kw));
+
+  let lat = null;
+  let lon = null;
+  
+  if (requiresLocation && navigator.geolocation) {
+    const statusId = 'loc-status-' + Date.now();
+    const msgs = document.getElementById('messages');
+    msgs.insertAdjacentHTML('beforeend', `<div id="${statusId}" style="text-align:center; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">📍 Getting your location...</div>`);
+    scrollToBottom();
+    
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+      });
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+    } catch (err) {
+      console.warn("Location error:", err);
+    } finally {
+      const stEl = document.getElementById(statusId);
+      if (stEl) stEl.remove();
     }
-    document.getElementById('messages').innerHTML += `<div class="message agent"><div class="msg-avatar" style="background:transparent;"><img src="/static/assets/heali-logo.svg" alt="Heali" width="32" height="32"></div><div class="msg-bubble">${reply}</div></div>`;
-    document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
-  } catch(e) {}
+  }
+
+  try {
+    const payload = {message: text, session_id: currentChatSessionId};
+    if (lat !== null && lon !== null) {
+      payload.latitude = lat;
+      payload.longitude = lon;
+    }
+    const res = await apiFetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    let replyText = data.reply || '';
+    let richData = null;
+    
+    if(typeof replyText === 'string' && replyText.startsWith('{')) {
+        try { 
+          let j = JSON.parse(replyText); 
+          replyText = j.message || replyText; 
+          richData = j;
+        } catch(e){}
+    }
+    
+    removeTypingIndicator(typingId);
+    appendAgentMessage(replyText, false, richData);
+    
+    if (document.getElementById('currentChatTitle').textContent === 'New Chat') {
+        const titleRes = await apiFetch('/api/chat/sessions', { headers: {'Authorization': 'Bearer ' + token} });
+        allSessions = await titleRes.json();
+        const updatedSession = allSessions.find(s => s.id === currentChatSessionId);
+        if (updatedSession) {
+            document.getElementById('currentChatTitle').textContent = updatedSession.title;
+        }
+        renderSidebar(allSessions);
+    }
+  } catch(e) {
+    removeTypingIndicator(typingId);
+    appendAgentMessage('Something went wrong. Please try again.');
+  }
 }
 
 // MANUAL BOOKING
@@ -855,11 +1383,27 @@ function loadDoctorsForBooking() {
 }
 async function checkSlots() {
   const did = document.getElementById('mbDoctor').value;
-  const dt = document.getElementById('mbDate').value;
+  let dt = document.getElementById('mbDate').value;
   if(!did || !dt) return showAlert('mbAlert', 'Select doctor and date');
+  
+  if (dt.includes('-')) {
+    const parts = dt.split('-');
+    if (parts[0].length === 2) {
+      dt = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
   try {
     const res = await apiFetch(`/api/doctors/${did}/slots?date=${dt}`);
-    if(!res.ok) throw new Error((await res.json()).detail);
+    if(!res.ok) {
+      let errMsg = "Unable to load availability. Please try again.";
+      try {
+        const errData = await res.json();
+        if (errData.detail) errMsg = errData.detail;
+      } catch(e) {}
+      console.error("Backend error status:", res.status);
+      throw new Error(errMsg);
+    }
     const data = await res.json();
     if(!data.free_slots || data.free_slots.length === 0) throw new Error("No slots available");
     
@@ -875,9 +1419,16 @@ async function checkSlots() {
   } catch(e) { showAlert('mbAlert', e.message); }
 }
 async function confirmBooking() {
+  let dt = document.getElementById('mbDate').value;
+  if (dt.includes('-')) {
+    const parts = dt.split('-');
+    if (parts[0].length === 2) {
+      dt = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
   const req = {
     doctor_id: parseInt(document.getElementById('mbDoctor').value),
-    date: document.getElementById('mbDate').value,
+    date: dt,
     time: document.getElementById('mbTime').value
   };
   try {
@@ -892,44 +1443,156 @@ async function confirmBooking() {
 }
 
 // MANAGE SCHEDULE
+let currentSchedule = [];
+const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 async function openManageSchedule() {
   openModal('manageScheduleModal');
   loadExceptions();
+  document.getElementById('weeklyScheduleEditor').innerHTML = '<div class="spinner"></div>';
+  document.getElementById('msAlert').style.display = 'none';
   try {
     const res = await apiFetch('/api/doctor/profile', { headers: {'Authorization': 'Bearer ' + token} });
     const data = await res.json();
-    let workDays = (data.work_days || "").split(',');
-    document.querySelectorAll('.day-cb').forEach(cb => cb.checked = workDays.includes(cb.value));
     
-    let mStart = '', mEnd = '', aStart = '', aEnd = '';
-    if(data.work_start) {
-      const parts = data.work_start.split(',');
-      if(parts.length > 0) mStart = parts[0];
-      if(parts.length > 1) aStart = parts[1];
+    currentSchedule = [];
+    for (let i = 0; i < 7; i++) {
+       let shifts = [];
+       if (data.weekly_schedule && data.weekly_schedule[i]) {
+          shifts = data.weekly_schedule[i].map(s => ({...s}));
+       } else if (!data.weekly_schedule) {
+           // Fallback logic for legacy data if migration hasn't happened or no schedule found
+           let workDays = (data.work_days || "").split(',');
+           if (workDays.includes(i.toString())) {
+               let mStart = data.work_start ? data.work_start.split(',')[0] : '09:00';
+               let mEnd = data.work_end ? data.work_end.split(',')[0] : '11:30';
+               shifts.push({start_time: mStart, end_time: mEnd});
+               
+               if (data.work_start && data.work_start.split(',').length > 1) {
+                   let aStart = data.work_start.split(',')[1];
+                   let aEnd = data.work_end.split(',')[1];
+                   shifts.push({start_time: aStart, end_time: aEnd});
+               }
+           }
+       }
+       currentSchedule.push({
+          day_of_week: i,
+          name: dayNames[i],
+          enabled: shifts.length > 0,
+          shifts: shifts
+       });
     }
-    if(data.work_end) {
-      const parts = data.work_end.split(',');
-      if(parts.length > 0) mEnd = parts[0];
-      if(parts.length > 1) aEnd = parts[1];
-    }
-    // Default schedule if empty
-    document.getElementById('availMornStart').value = mStart || '09:00';
-    document.getElementById('availMornEnd').value = mEnd || '11:30';
-    document.getElementById('availAftStart').value = aStart || '13:00';
-    document.getElementById('availAftEnd').value = aEnd || '17:00';
-  } catch(e){}
+    renderScheduleEditor();
+  } catch(e){
+    document.getElementById('weeklyScheduleEditor').innerHTML = '<p class="text-danger">Failed to load schedule.</p>';
+  }
 }
+
+function renderScheduleEditor() {
+  const container = document.getElementById('weeklyScheduleEditor');
+  container.innerHTML = currentSchedule.map((day, idx) => {
+    let html = `
+      <div class="day-card ${day.enabled ? '' : 'unavailable'}">
+        <div class="day-header">
+          <span style="text-transform: uppercase;">${day.name}</span>
+          <label class="day-toggle">
+            <input type="checkbox" ${day.enabled ? 'checked' : ''} onchange="toggleDay(${idx}, this.checked)">
+            ${day.enabled ? '✓ Available' : '○ Unavailable'}
+          </label>
+        </div>
+    `;
+    
+    if (day.enabled) {
+      if (day.shifts.length === 0) {
+         day.shifts.push({start_time: '09:00', end_time: '17:00'});
+      }
+      day.shifts.forEach((shift, sidx) => {
+        html += `
+          <div class="shift-row">
+            <input type="time" class="form-input" value="${shift.start_time}" onchange="updateShift(${idx}, ${sidx}, 'start_time', this.value)" required>
+            <span style="color:var(--text-secondary)">—</span>
+            <input type="time" class="form-input" value="${shift.end_time}" onchange="updateShift(${idx}, ${sidx}, 'end_time', this.value)" required>
+            <button type="button" class="btn-remove" onclick="removeShift(${idx}, ${sidx})" title="Remove Shift"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+      html += `
+        <button type="button" class="btn-add-shift" onclick="addShift(${idx})"><i class="fa-solid fa-plus"></i> Add shift</button>
+      `;
+    }
+    html += `</div>`;
+    return html;
+  }).join('');
+}
+
+function toggleDay(dayIdx, isEnabled) {
+  currentSchedule[dayIdx].enabled = isEnabled;
+  if (isEnabled && currentSchedule[dayIdx].shifts.length === 0) {
+     currentSchedule[dayIdx].shifts = [{start_time: '09:00', end_time: '12:00'}];
+  }
+  renderScheduleEditor();
+}
+
+function updateShift(dayIdx, shiftIdx, field, value) {
+  currentSchedule[dayIdx].shifts[shiftIdx][field] = value;
+}
+
+function addShift(dayIdx) {
+  currentSchedule[dayIdx].shifts.push({start_time: '13:00', end_time: '17:00'});
+  renderScheduleEditor();
+}
+
+function removeShift(dayIdx, shiftIdx) {
+  currentSchedule[dayIdx].shifts.splice(shiftIdx, 1);
+  if (currentSchedule[dayIdx].shifts.length === 0) {
+     currentSchedule[dayIdx].enabled = false;
+  }
+  renderScheduleEditor();
+}
+
 async function saveDoctorAvailability() {
-  const days = Array.from(document.querySelectorAll('.day-cb:checked')).map(cb => cb.value).join(',');
-  const req = {
-    days: days, morning_start: document.getElementById('availMornStart').value, morning_end: document.getElementById('availMornEnd').value,
-    afternoon_start: document.getElementById('availAftStart').value, afternoon_end: document.getElementById('availAftEnd').value
-  };
+  const req = { schedule: [] };
+  
+  for (let day of currentSchedule) {
+     if (day.enabled && day.shifts.length > 0) {
+        for (let shift of day.shifts) {
+           if (!shift.start_time || !shift.end_time) {
+               return showAlert('msAlert', `Please fill in all times for ${day.name}.`);
+           }
+           if (shift.start_time >= shift.end_time) {
+              return showAlert('msAlert', `Invalid time range on ${day.name}. Start time must be before end time.`);
+           }
+        }
+        
+        // Ensure no overlapping shifts by sorting and checking
+        let sortedShifts = [...day.shifts].sort((a,b) => a.start_time.localeCompare(b.start_time));
+        for (let i=0; i<sortedShifts.length-1; i++) {
+           if (sortedShifts[i].end_time > sortedShifts[i+1].start_time) {
+               return showAlert('msAlert', `Shifts on ${day.name} cannot overlap.`);
+           }
+        }
+        
+        req.schedule.push({
+           day_of_week: day.day_of_week,
+           shifts: sortedShifts
+        });
+     }
+  }
+  
   try {
+    document.getElementById('msAlert').style.display = 'none';
     const res = await apiFetch('/api/doctor/availability', { method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(req) });
-    if (!res.ok) throw new Error();
-    closeModal('manageScheduleModal');
-  } catch(e) { showAlert('msAlert', 'Failed to save schedule'); }
+    if (!res.ok) {
+       const d = await res.json();
+       throw new Error(d.detail || 'Failed to save');
+    }
+    
+    // Show success visually before closing
+    showAlert('msAlert', '✓ Schedule updated successfully!', 'success');
+    setTimeout(() => {
+        closeModal('manageScheduleModal');
+    }, 1500);
+  } catch(e) { showAlert('msAlert', e.message); }
 }
 
   // EXCEPTIONS API
@@ -947,7 +1610,7 @@ async function saveDoctorAvailability() {
               <p style="margin:0; font-weight:600; font-size:0.85rem;">${e.date}</p>
               <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${e.reason || 'Unavailable'}</p>
             </div>
-            <button class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.7rem; color:var(--danger); border-color:var(--danger); width:auto;" onclick="deleteException('${e.date}')">Remove</button>
+            <button type="button" class="btn-outline" style="padding:0.25rem 0.5rem; font-size:0.7rem; color:var(--danger); border-color:var(--danger); width:auto;" onclick="deleteException('${e.date}')">Remove</button>
           </div>
         `).join('');
       }
