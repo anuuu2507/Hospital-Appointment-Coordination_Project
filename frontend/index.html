@@ -1095,33 +1095,8 @@ function sendQuickAction(text) {
 
 function renderWelcomeState() {
   const msgs = document.getElementById('messages');
-  const greeting = "Good " + (new Date().getHours() < 12 ? "morning" : "afternoon") + ", " + (userRole === 'doctor' ? formatDocName(userName) : userName);
-  
-  let actionsHtml = '';
-  if (userRole === 'doctor') {
-    actionsHtml = `
-      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Manage my schedule')"><i class="fa-regular fa-calendar" style="color:var(--aqua)"></i> Manage schedule</button>
-      <button type="button" class="quick-action-btn" onclick="sendQuickAction('View today\\'s appointments')"><i class="fa-solid fa-users" style="color:var(--aqua)"></i> Today's appointments</button>
-      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Update my availability for tomorrow')"><i class="fa-solid fa-clock" style="color:var(--aqua)"></i> Update availability</button>
-      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Help me with appointments')"><i class="fa-solid fa-circle-info" style="color:var(--aqua)"></i> Get help</button>
-    `;
-  } else {
-    actionsHtml = `
-      <button type="button" class="quick-action-btn" onclick="sendQuickAction('Book an appointment')"><i class="fa-regular fa-calendar-plus" style="color:var(--aqua)"></i> Book appointment</button>
-      <button type="button" class="quick-action-btn" onclick="sendQuickAction('View my upcoming appointments')"><i class="fa-regular fa-calendar-check" style="color:var(--aqua)"></i> Upcoming appointments</button>
-    `;
-  }
-
-  msgs.innerHTML = `
-    <div class="welcome-state" id="welcomeState">
-      <img src="/static/assets/heali-logo.svg" alt="Heali" class="welcome-logo">
-      <h2 class="welcome-title">${greeting}</h2>
-      <p class="welcome-subtitle">I'm Heali, your AI healthcare assistant. How can I help you today?</p>
-      <div class="quick-actions-grid">
-        ${actionsHtml}
-      </div>
-    </div>
-  `;
+  msgs.innerHTML = '';
+  appendAgentMessage("Hello! I'm Heali. How can I assist you today?", false, null);
 }
 
 function formatTime(date) {
